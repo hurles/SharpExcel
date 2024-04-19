@@ -1,5 +1,6 @@
 using ExcelSharp.Styling;
 using ExcelSharp.Styling.Colorization;
+using ExcelSharp.Styling.Text;
 
 namespace ExcelSharp.TestApplication;
 
@@ -8,7 +9,8 @@ public class TestExporter : BaseExcelExporter<TestExportModel>
     public override ExcelSharpCellStyle GetHeaderStyle()
     {
         var headerStyle = ExcelSharpCellStyleConstants.DefaultHeaderStyle;
-        
+        headerStyle.FontSize = 13.0f;
+        headerStyle.TextStyle = TextStyle.Bold;
         headerStyle.BackgroundColor = new ExcelSharpColor(200, 200, 200, 255);
 
         return headerStyle;
@@ -18,23 +20,20 @@ public class TestExporter : BaseExcelExporter<TestExportModel>
     {
         var dataStyle = ExcelSharpCellStyleConstants.DefaultDataStyle;
 
-        switch (record.Id)
+        if (propertyName == nameof(TestExportModel.Budget))
         {
-            case 0:
-                dataStyle.TextColor = ExcelSharpColorConstants.Red;
-                break;
-            case 1:
-                dataStyle.TextColor = ExcelSharpColorConstants.Yellow;
-                break;
-            case 2:
-                dataStyle.TextColor = ExcelSharpColorConstants.Green;
-                break;
-            case 3:
-                dataStyle.TextColor = ExcelSharpColorConstants.Blue;
-                break;
-            case 4:
-                dataStyle.TextColor = ExcelSharpColorConstants.Purple;
-                break;
+            switch (record.Budget)
+            {
+                case < 0:
+                    dataStyle.TextColor = ExcelSharpColorConstants.Red;
+                    break;
+                case > 0:
+                    dataStyle.TextColor = ExcelSharpColorConstants.Green;
+                    break;
+                default:
+                    dataStyle.TextColor = ExcelSharpColorConstants.Black;
+                    break;
+            }
         }
 
         return dataStyle;
