@@ -9,7 +9,7 @@ public class TestExporter : BaseExcelExporter<TestExportModel>
     {
         var headerStyle = ExcelSharpCellStyleConstants.DefaultHeaderStyle;
         
-        headerStyle.BackgroundColor = new ExcelSharpColor(200, 50, 50, 255);
+        headerStyle.BackgroundColor = new ExcelSharpColor(200, 200, 200, 255);
 
         return headerStyle;
     }
@@ -35,7 +35,6 @@ public class TestExporter : BaseExcelExporter<TestExportModel>
             case 4:
                 dataStyle.TextColor = ExcelSharpColorConstants.Purple;
                 break;
-
         }
 
         return dataStyle;
