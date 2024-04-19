@@ -3,7 +3,9 @@ using System.Reflection;
 using ClosedXML.Excel;
 using ExcelSharp.Abstraction;
 using ExcelSharp.Attributes;
+using ExcelSharp.Extensions;
 using ExcelSharp.Models;
+using ExcelSharp.Styling;
 
 namespace ExcelSharp;
 
@@ -11,7 +13,7 @@ namespace ExcelSharp;
 /// Base class for creating excel workbooks
 /// </summary>
 public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
-    where TModel : IExcelModel, new()
+    where TModel : class, new()
 {
     /// <summary>
     /// method to actually build workbook
@@ -25,7 +27,12 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet(arguments.SheetName);
 
-        worksheet.Rows().Height = 20;
+        var headerStyle = GetHeaderStyle();
+
+        if (headerStyle.RowHeight.HasValue)
+        {
+            worksheet.Rows().Height = headerStyle.RowHeight.Value;
+        }
 
         //start at Row 1 because Excel starts at 1
         var rowIndex = 1;
@@ -46,8 +53,9 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
             }
 
             var cell = worksheet.Cell(rowIndex, columnIndex + 1 - offsetColumns /* use +1 because Excel starts at 1 */);
-            cell.Style.Font.SetBold();
-            cell.Style.Fill.SetBackgroundColor(XLColor.LightGray);
+            
+            
+            cell.Style.ApplyStyle(headerStyle);
 
             if (mapping.ColumnWidth > 0)
             {
@@ -69,7 +77,8 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
             for (var i = 0; i < propertyMappings.Count; i++)
             {
                 var mapping = propertyMappings[i];
-
+                var row = worksheet.Row(rowIndex);
+                
                 if (mapping.Optional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
                 {
                     dataOffset++;
@@ -77,6 +86,13 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                 }
 
                 var cell = worksheet.Cell(rowIndex, i + 1 - dataOffset /* use +1 because Excel starts at 1 */);
+
+                var dataStyle = GetDataStyle(mapping.PropertyInfo.Name, dataItem);
+
+                if (dataStyle.RowHeight.HasValue &&  row.Height < dataStyle.RowHeight)
+                {
+                    row.Height = dataStyle.RowHeight.Value;
+                }
 
                 var dataValue = mapping.PropertyInfo.GetValue(dataItem);
                 if (mapping.Format != null)
@@ -87,6 +103,8 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                     }
                 }
                 cell.SetValue(XLCellValue.FromObject(dataValue));
+                
+                cell.Style.ApplyStyle(dataStyle);
             }
 
             rowIndex++;
@@ -166,6 +184,27 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         return Task.FromResult(output);
     }
 
+    /// <summary>
+    /// Override this method to set cell style for header row cells.
+    /// </summary>
+    /// <returns></returns>
+    public virtual ExcelSharpCellStyle GetHeaderStyle()
+    {
+        return ExcelSharpCellStyleConstants.DefaultHeaderStyle;
+    }
+
+    /// <summary>
+    /// Override this method to set cell style for each data cell.
+    /// Record + current column are provided so styling can be different based on conditions given by the user
+    /// </summary>
+    /// <param name="record">current record being processed</param>
+    /// <param name="propertyName">current column being processed</param>
+    /// <returns></returns>
+    public virtual ExcelSharpCellStyle GetDataStyle(string propertyName, TModel record)
+    {
+        return ExcelSharpCellStyleConstants.DefaultDataStyle;
+    }
+
     public async Task<HashSet<string>> GetOptionalPropertiesToExport(
         Func<string, Task<bool>>? optionalColumnFunc = null)
     {
@@ -219,13 +258,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         {
 
             var property = dataType.GetProperties()[columnIndex];
-
-            var columnsSelectionAttribute = property.GetCustomAttribute<ExcelOptionalColumnsSelectionAttribute>();
-            if (columnsSelectionAttribute != null)
-            {
-                continue;
-            }
-
+            
             var rowIdentifierAttribute = property.GetCustomAttribute<ExcelRowIdentifierAttribute>();
             if (rowIdentifierAttribute != null)
             {
@@ -260,10 +293,8 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
         public int ColumnWidth { get; set; }
 
-
         public bool Optional { get; set; }
 
         public PropertyInfo PropertyInfo { get; set; }
     }
 }
-    

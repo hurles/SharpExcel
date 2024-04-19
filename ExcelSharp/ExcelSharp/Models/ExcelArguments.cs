@@ -3,7 +3,7 @@ using ExcelSharp.Abstraction;
 namespace ExcelSharp.Models;
 
 public class ExcelArguments<TExportModel>
-    where TExportModel : IExcelModel
+    where TExportModel : class
 {
     public string? SheetName { get; set; }
 
