@@ -1,12 +1,12 @@
-using SharpExcel.Styling;
-using SharpExcel.Styling.Colorization;
-using SharpExcel.Styling.Text;
+using SharpExcel.Models.Styling;
+using SharpExcel.Models.Styling.Colorization;
+using SharpExcel.Models.Styling.Text;
 
 namespace SharpExcel.TestApplication;
 
 public class TestExporter : BaseExcelExporter<TestExportModel>
 {
-    public override SharpExcelCellStyle GetHeaderStyle()
+    protected override SharpExcelCellStyle GetHeaderStyle()
     {
         var headerStyle = SharpExcelCellStyleConstants.DefaultHeaderStyle;
         headerStyle.FontSize = 13.0f;
@@ -16,7 +16,7 @@ public class TestExporter : BaseExcelExporter<TestExportModel>
         return headerStyle;
     }
 
-    public override SharpExcelCellStyle GetDataStyle(string propertyName, TestExportModel record)
+    protected override SharpExcelCellStyle GetDataStyle(string propertyName, TestExportModel record)
     {
         var dataStyle = SharpExcelCellStyleConstants.DefaultDataStyle;
 

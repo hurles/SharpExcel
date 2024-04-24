@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpExcel.Tests", "SharpEx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpExcel.TestApplication", "SharpExcel.TestApplication\SharpExcel.TestApplication.csproj", "{94E79FA2-1E3F-4840-A266-EC397C3BE11F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpExcel.Models", "SharpExcel.Models\SharpExcel.Models.csproj", "{253A1B7A-853F-49AB-A3A8-3FAF33F21398}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{94E79FA2-1E3F-4840-A266-EC397C3BE11F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94E79FA2-1E3F-4840-A266-EC397C3BE11F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94E79FA2-1E3F-4840-A266-EC397C3BE11F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{253A1B7A-853F-49AB-A3A8-3FAF33F21398}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{253A1B7A-853F-49AB-A3A8-3FAF33F21398}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{253A1B7A-853F-49AB-A3A8-3FAF33F21398}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{253A1B7A-853F-49AB-A3A8-3FAF33F21398}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

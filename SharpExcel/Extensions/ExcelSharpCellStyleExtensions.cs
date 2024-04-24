@@ -1,7 +1,7 @@
 using ClosedXML.Excel;
-using SharpExcel.Styling;
-using SharpExcel.Styling.Borders;
-using SharpExcel.Styling.Text;
+using SharpExcel.Models.Styling;
+using SharpExcel.Models.Styling.Borders;
+using SharpExcel.Models.Styling.Text;
 
 namespace SharpExcel.Extensions;
 

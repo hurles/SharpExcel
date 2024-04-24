@@ -1,8 +1,8 @@
-using SharpExcel.Styling.Borders;
-using SharpExcel.Styling.Colorization;
-using SharpExcel.Styling.Text;
+using SharpExcel.Models.Styling.Borders;
+using SharpExcel.Models.Styling.Colorization;
+using SharpExcel.Models.Styling.Text;
 
-namespace SharpExcel.Styling;
+namespace SharpExcel.Models.Styling;
 
 /// <summary>
 /// Struct defining the styling of a cell

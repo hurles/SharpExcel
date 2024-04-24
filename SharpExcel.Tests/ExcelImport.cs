@@ -31,10 +31,10 @@ public class Tests
         
         Assert.Multiple(() =>
         {
-            Assert.That(output.Count, Is.EqualTo(1));
-            Assert.That(output[0].Id, Is.EqualTo(0));
-            Assert.That(output[0].FirstName, Is.EqualTo("John"));
-            Assert.That(output[0].LastName, Is.EqualTo("Doe"));
+            Assert.That(output.Records.Count, Is.EqualTo(1));
+            Assert.That(output.Records[0]?.Id, Is.EqualTo(0));
+            Assert.That(output.Records[0]?.FirstName, Is.EqualTo("John"));
+            Assert.That(output.Records[0]?.LastName, Is.EqualTo("Doe"));
         });
     }
 

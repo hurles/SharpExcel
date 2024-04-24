@@ -1,10 +1,10 @@
-namespace SharpExcel.Attributes;
+namespace SharpExcel.Models.Attributes;
 
 public class ExcelColumnDefinitionAttribute(
     string columnName,
     int width = -1,
     string? format = null,
-    bool isOptional = false)
+    bool isConditional = false)
     : Attribute
 {
     public string DisplayName { get; set; } = columnName;
@@ -13,5 +13,5 @@ public class ExcelColumnDefinitionAttribute(
 
     public string? Format { get; set; } = format;
 
-    public bool IsOptional { get; set; } = isOptional;
+    public bool IsConditional { get; set; } = isConditional;
 }

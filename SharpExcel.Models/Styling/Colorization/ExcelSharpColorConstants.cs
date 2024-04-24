@@ -1,4 +1,4 @@
-namespace SharpExcel.Styling.Colorization;
+namespace SharpExcel.Models.Styling.Colorization;
 
 /// <summary>
 /// Constant values for a set of colors

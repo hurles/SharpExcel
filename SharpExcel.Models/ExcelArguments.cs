@@ -1,5 +1,3 @@
-using SharpExcel.Abstraction;
-
 namespace SharpExcel.Models;
 
 public class ExcelArguments<TExportModel>

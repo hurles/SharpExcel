@@ -1,4 +1,4 @@
-namespace SharpExcel.Styling.Text;
+namespace SharpExcel.Models.Styling.Text;
 
 public enum TextStyle
 {

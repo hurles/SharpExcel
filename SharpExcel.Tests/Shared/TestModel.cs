@@ -1,9 +1,9 @@
 using SharpExcel.Abstraction;
-using SharpExcel.Attributes;
+using SharpExcel.Models.Attributes;
 
 namespace SharpExcel.Tests.Shared;
 
-public class TestModel : IExcelModel
+public class TestModel
 {
     [ExcelColumnDefinition(columnName: "ID", width: 45)]
     public int Id { get; set; }

@@ -1,4 +1,4 @@
-namespace SharpExcel.Styling.Borders;
+namespace SharpExcel.Models.Styling.Borders;
 
 public class BorderCollection
 {

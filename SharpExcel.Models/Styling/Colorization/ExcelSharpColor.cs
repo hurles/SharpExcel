@@ -1,4 +1,4 @@
-namespace SharpExcel.Styling.Colorization;
+namespace SharpExcel.Models.Styling.Colorization;
 public readonly struct SharpExcelColor : IEquatable<SharpExcelColor>
 {
     public SharpExcelColor(byte r, byte g, byte b, byte a = 255)

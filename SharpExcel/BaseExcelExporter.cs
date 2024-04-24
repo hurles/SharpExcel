@@ -1,11 +1,13 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Reflection;
 using ClosedXML.Excel;
 using SharpExcel.Extensions;
 using SharpExcel.Abstraction;
-using SharpExcel.Attributes;
 using SharpExcel.Models;
-using SharpExcel.Styling;
+using SharpExcel.Models.Attributes;
+using SharpExcel.Models.Results;
+using SharpExcel.Models.Styling;
 
 namespace SharpExcel;
 
@@ -46,7 +48,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
             var mapping = propertyMappings[columnIndex];
 
-            if (mapping.Optional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
+            if (mapping.Conditional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
             {
                 offsetColumns++;
                 continue;
@@ -79,7 +81,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                 var mapping = propertyMappings[i];
                 var row = worksheet.Row(rowIndex);
                 
-                if (mapping.Optional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
+                if (mapping.Conditional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
                 {
                     dataOffset++;
                     continue;
@@ -120,8 +122,9 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     /// <param name="workbook"></param>
     /// <typeparam name="TModel"></typeparam>
     /// <returns></returns>
-    public Task<List<TModel>> ReadWorkbookAsync(string sheetName, XLWorkbook workbook)
+    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(string sheetName, XLWorkbook workbook)
     {
+        var output = new ExcelReadResult<TModel>();
         var propertyData = GetModelMetaData();
 
         var sheet = workbook.Worksheet(sheetName);
@@ -139,17 +142,26 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
         var remainingRows = usedArea.Rows(headerRowIndex + 1, usedArea.RowCount()).ToList();
 
-        var output = new List<TModel>();
-
         //parse remaining data rows
         foreach (var row in remainingRows)
         {
             var data = new TModel();
 
+            Dictionary<ExcelAddress, List<ValidationResult>> validationResults = new();
+
             for (var columnIndex = 0; columnIndex < propertyData.Count; columnIndex++)
             {
                 var columnData = propertyData[columnIndex];
                 var cell = row.Cell(columnIndex + 1 /* use +1 because Excel starts at 1 */);
+
+                var excelAddress = new ExcelAddress()
+                {
+                    RowNumber = row.RowNumber(),
+                    ColumnId = cell.Address.ColumnNumber,
+                    ColumnName = cell.Address.ColumnLetter,
+                    HeaderName = columnData.Name
+                };
+                
                 var dataValue = 
                     //fp types
                     TrySetValue<double>(columnData, cell) ??
@@ -175,10 +187,31 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                 if (columnData.PropertyInfo.PropertyType == dataValue?.GetType())
                 {
                     columnData.PropertyInfo.SetValue(data, dataValue);
+                    
+                    ValidationContext context = new ValidationContext(data) { 
+                        MemberName = columnData.PropertyInfo.Name, 
+                        DisplayName = columnData.Name ?? columnData.PropertyInfo.Name};
+                    var validations = new List<ValidationResult>();
+                    if (!Validator.TryValidateProperty(dataValue, context, validations))
+                    {
+                        validationResults.Add(excelAddress, validations);
+                    }
                 }
             }
-
-            output.Add(data);
+            
+            output.Records.Add(data);
+            if (validationResults.Any())
+            {
+                foreach (var validationResult in validationResults)
+                {
+                    output.ValidationResults.Add(data, new ExcelCellValidationResult()
+                    {
+                        Address = validationResult.Key,
+                        ValidationResults = validationResult.Value
+                    });
+                }
+            }
+            
         }
 
         return Task.FromResult(output);
@@ -188,7 +221,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     /// Override this method to set cell style for header row cells.
     /// </summary>
     /// <returns></returns>
-    public virtual SharpExcelCellStyle GetHeaderStyle()
+    protected virtual SharpExcelCellStyle GetHeaderStyle()
     {
         return SharpExcelCellStyleConstants.DefaultHeaderStyle;
     }
@@ -200,21 +233,21 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     /// <param name="record">current record being processed</param>
     /// <param name="propertyName">current column being processed</param>
     /// <returns></returns>
-    public virtual SharpExcelCellStyle GetDataStyle(string propertyName, TModel record)
+    protected virtual SharpExcelCellStyle GetDataStyle(string propertyName, TModel record)
     {
         return SharpExcelCellStyleConstants.DefaultDataStyle;
     }
 
     public async Task<HashSet<string>> GetOptionalPropertiesToExport(
-        Func<string, Task<bool>>? optionalColumnFunc = null)
+        Func<string, Task<bool>>? conditionalColumnFunc = null)
     {
         var output = new List<string>();
 
-        var optionalProperties = GetModelMetaData().Where(x => x.Optional);
+        var conditionalProperties = GetModelMetaData().Where(x => x.Conditional);
 
-        foreach (var optional in optionalProperties)
+        foreach (var optional in conditionalProperties)
         {
-            if (optionalColumnFunc != null && await optionalColumnFunc(optional.PropertyInfo.Name))
+            if (conditionalColumnFunc != null && await conditionalColumnFunc(optional.PropertyInfo.Name))
             {
                 output.Add(optional.PropertyInfo.Name);
             }
@@ -226,7 +259,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     public virtual HashSet<string> GetOptionalColumns()
     {
         var propertyData = GetModelMetaData();
-        var output = propertyData.Where(x => x.Optional)
+        var output = propertyData.Where(x => x.Conditional)
             .Select(x => x.Name);
 
         return [..output];
@@ -234,12 +267,12 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
     static object? TrySetValue<TPropertyData>(PropertyData columnData, IXLCell cell)
     {
-        if (columnData.PropertyInfo.PropertyType == typeof(TPropertyData))
+        if (columnData.PropertyInfo.PropertyType != typeof(TPropertyData)) 
+            return null;
+        
+        if (cell.TryGetValue(out TPropertyData dataValue))
         {
-            if (cell.TryGetValue(out TPropertyData dataValue))
-            {
-                return dataValue;
-            }
+            return dataValue;
         }
 
         return null;
@@ -250,7 +283,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     /// </summary>
     /// <typeparam name="TModel"></typeparam>
     /// <returns></returns>
-    private List<PropertyData> GetModelMetaData()
+    private static List<PropertyData> GetModelMetaData()
     {
         var dataType = typeof(TModel);
         var propertyMappings = new List<PropertyData>();
@@ -258,14 +291,14 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         {
 
             var property = dataType.GetProperties()[columnIndex];
-            
-            var rowIdentifierAttribute = property.GetCustomAttribute<ExcelRowIdentifierAttribute>();
-            if (rowIdentifierAttribute != null)
+
+            var attribute = property.GetCustomAttribute<ExcelColumnDefinitionAttribute>();
+
+            if (attribute is null)
             {
                 continue;
             }
 
-            var attribute = property.GetCustomAttribute<ExcelColumnDefinitionAttribute>();
             var columnName = property.Name;
             if (!string.IsNullOrWhiteSpace(attribute?.DisplayName))
             {
@@ -277,14 +310,17 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                 Name = columnName,
                 PropertyInfo = property,
                 Format = attribute?.Format,
-                Optional = attribute?.IsOptional ?? false,
+                Conditional = attribute?.IsConditional ?? false,
                 ColumnWidth = attribute?.ColumnWidth ?? -1
             });
         }
 
         return propertyMappings;
     }
-
+    
+    /// <summary>
+    /// This struct is only used to load the metadata of the model
+    /// </summary>
     private struct PropertyData
     {
         public string? Name { get; set; }
@@ -293,7 +329,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
         public int ColumnWidth { get; set; }
 
-        public bool Optional { get; set; }
+        public bool Conditional { get; set; }
 
         public PropertyInfo PropertyInfo { get; set; }
     }
