@@ -16,6 +16,7 @@ public class TestExportModel
     [ExcelColumnDefinition(columnName: "Last Name", width: 25)]
     public string? LastName { get; set; } = null!;
     
+    [Required]
     [ExcelColumnDefinition(columnName: "Email", width: 50)]
     public string? Email { get; set; } = null!;
     

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Reflection;
+using System.Text;
 using ClosedXML.Excel;
 using SharpExcel.Extensions;
 using SharpExcel.Abstraction;
@@ -29,7 +30,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet(arguments.SheetName);
 
-        var headerStyle = GetHeaderStyle();
+        var headerStyle = OnSetHeaderStyle();
 
         if (headerStyle.RowHeight.HasValue)
         {
@@ -89,7 +90,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
                 var cell = worksheet.Cell(rowIndex, i + 1 - dataOffset /* use +1 because Excel starts at 1 */);
 
-                var dataStyle = GetDataStyle(mapping.PropertyInfo.Name, dataItem);
+                var dataStyle = OnSetCellDataStyle(mapping.PropertyInfo.Name, dataItem);
 
                 if (dataStyle.RowHeight.HasValue &&  row.Height < dataStyle.RowHeight)
                 {
@@ -112,6 +113,25 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
             rowIndex++;
         }
         
+        return workbook;
+    }
+
+    public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(string sheetName, XLWorkbook workbook)
+    {
+        var parsedWorkbook = await ReadWorkbookAsync(sheetName, workbook);
+
+        foreach (var result in parsedWorkbook.ValidationResults)
+        {
+            var cell = workbook.Worksheet(sheetName).Cell(result.Value.Address.RowNumber, result.Value.Address.ColumnId);
+            var stringBuilder = new StringBuilder();
+            foreach (var item in result.Value.ValidationResults)
+            {
+                stringBuilder.AppendLine(item.ErrorMessage);
+            }
+            cell.Style.ApplyStyle(SharpExcelCellStyleConstants.DefaultErrorStyle);
+            cell.CreateComment().AddText(stringBuilder.ToString());
+        }
+
         return workbook;
     }
 
@@ -221,7 +241,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     /// Override this method to set cell style for header row cells.
     /// </summary>
     /// <returns></returns>
-    protected virtual SharpExcelCellStyle GetHeaderStyle()
+    protected virtual SharpExcelCellStyle OnSetHeaderStyle()
     {
         return SharpExcelCellStyleConstants.DefaultHeaderStyle;
     }
@@ -233,7 +253,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     /// <param name="record">current record being processed</param>
     /// <param name="propertyName">current column being processed</param>
     /// <returns></returns>
-    protected virtual SharpExcelCellStyle GetDataStyle(string propertyName, TModel record)
+    protected virtual SharpExcelCellStyle OnSetCellDataStyle(string propertyName, TModel record)
     {
         return SharpExcelCellStyleConstants.DefaultDataStyle;
     }
