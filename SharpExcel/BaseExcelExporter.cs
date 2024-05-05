@@ -51,23 +51,8 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
         var propertyMappings = TypeMapper.GetModelMetaData<TModel>();
         var optionalColumns = await GetOptionalPropertiesToExport(optionalColumnFunc);
-
-        int dropDownWorkbookColumn = 1;
         
-        var dropdownDataMappings = new Dictionary<Type, string>();
-        foreach (var enumMapping in propertyMappings.EnumMappings)
-        {
-            var columnLength = 0;
-            for (int i = 0; i < enumMapping.Value.Count; i++)
-            {
-                var cell = dropdownWorksheet.Row(i + 1).Cell(dropDownWorkbookColumn);
-                cell.SetValue(enumMapping.Value[i].VisualName);
-                columnLength++;
-            }
-            var letter = dropdownWorksheet.Column(dropDownWorkbookColumn).ColumnLetter();
-            dropdownDataMappings.Add(enumMapping.Key, $"{letter}{1}:{letter}{columnLength + 1}");
-            dropDownWorkbookColumn++;
-        }
+        var dropdownDataMappings = AddEnumDropdownMappings(propertyMappings, dropdownWorksheet);
 
         int offsetColumns = 0;
         for (var columnIndex = 0; columnIndex < propertyMappings.PropertyMappings.Count; columnIndex++)
@@ -122,41 +107,24 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                 }
 
                 var dataValue = mapping.PropertyInfo.GetValue(dataItem);
-                if (mapping.Format != null)
+                
+                //handle enums
+                if (mapping.PropertyInfo.PropertyType.IsEnum)
+                {
+                    WriteEnumValue(propertyMappings, mapping, dataValue, cell, dropdownDataMappings, dropdownWorksheet);
+                }
+                //handle format
+                else if (mapping.Format != null)
                 {
                     if (dataValue is IFormattable formattable)
                     {
                         cell.SetValue(formattable.ToString(mapping.Format, CultureInfo.InvariantCulture));
                     }
                 }
-
-                if (mapping.PropertyInfo.PropertyType.IsEnum)
-                {
-                    if (propertyMappings.EnumMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var enumValues))
-                    {
-                        var text = dataValue.ToString().Trim().ToLowerInvariant();
-                        if (!string.IsNullOrWhiteSpace(text))
-                        {
-                            foreach (var enumValue in enumValues)
-                            {
-                                if (enumValue.Name == text)
-                                {
-                                    cell.SetValue(enumValue.VisualName);
-                                }
-                            }
-                        }
-                        
-                        if (dropdownDataMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var range))
-                        {
-                            cell.CreateDataValidation().List(dropdownWorksheet.Range(range), true);
-                        }
-                    }
-                }
                 else
                 {
                     cell.SetValue(XLCellValue.FromObject(dataValue));
                 }
-                
                 
                 cell.Style.ApplyStyle(dataStyle);
             }
@@ -167,9 +135,54 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         return workbook;
     }
 
+    private static void WriteEnumValue(PropertyDataCollection propertyMappings, PropertyData mapping, object dataValue,
+        IXLCell cell, Dictionary<Type, string> dropdownDataMappings, IXLWorksheet dropdownWorksheet)
+    {
+        if (propertyMappings.EnumMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var enumValues))
+        {
+            var text = dataValue.ToString().Trim().ToLowerInvariant();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                foreach (var enumValue in enumValues)
+                {
+                    if (enumValue.Name == text)
+                    {
+                        cell.SetValue(enumValue.VisualName);
+                    }
+                }
+            }
+                        
+            if (dropdownDataMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var range))
+            {
+                cell.CreateDataValidation().List(dropdownWorksheet.Range(range), true);
+            }
+        }
+    }
+
+    private static Dictionary<Type, string> AddEnumDropdownMappings(PropertyDataCollection propertyMappings, IXLWorksheet dropdownWorksheet)
+    {
+        int dropDownWorkbookColumn = 1;
+        var dropdownDataMappings = new Dictionary<Type, string>();
+        foreach (var enumMapping in propertyMappings.EnumMappings)
+        {
+            var columnLength = 0;
+            for (int i = 0; i < enumMapping.Value.Count; i++)
+            {
+                var cell = dropdownWorksheet.Row(i + 1).Cell(dropDownWorkbookColumn);
+                cell.SetValue(enumMapping.Value[i].VisualName);
+                columnLength++;
+            }
+            var letter = dropdownWorksheet.Column(dropDownWorkbookColumn).ColumnLetter();
+            dropdownDataMappings.Add(enumMapping.Key, $"{letter}{1}:{letter}{columnLength + 1}");
+            dropDownWorkbookColumn++;
+        }
+
+        return dropdownDataMappings;
+    }
+
     public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null)
     {
-        var parsedWorkbook = await ReadWorkbookAsync(sheetName, workbook);
+        var parsedWorkbook = await ReadWorkbookAsync(sheetName, workbook, cultureInfo);
 
         foreach (var result in parsedWorkbook.ValidationResults)
         {
@@ -351,7 +364,6 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         {
             if (cell.TryGetValue(out string textValue))
             {
-
                 if (dataCollection.EnumMappings.TryGetValue(actualType, out var data))
                 {
                     var value = data.FirstOrDefault(x => x.VisualName?.ToLowerInvariant() == textValue.Trim().ToLowerInvariant());
@@ -361,7 +373,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
             
         }
         
-        return null;
+        return default;
     }
 }
 

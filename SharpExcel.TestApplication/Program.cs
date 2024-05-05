@@ -7,7 +7,7 @@ var testData = new ExcelArguments<TestExportModel>()
     SheetName = "Budgets",
     Data = new List<TestExportModel>()
     {
-        new() { Id  = 0, FirstName = "John", LastName = "Doe", Budget = 2400.34m, Email = "john.doe@example.com", Department = Department.ValueA },
+        new() { Id  = 0, FirstName = "John", LastName = "Doe", Budget = 2400.34m, Email = "john.doe@example.com", Department = Department.Unknown },
         new() { Id  = 1, FirstName = "Jane", LastName = "Doe", Budget = -200.42m, Email = "jane.doe@example.com", Department = Department.ValueB },
         new() { Id  = 2, FirstName = "John", LastName = "Neutron", Budget = 0.0m, Email = null, Department = Department.ValueB },
         new() { Id  = 3, FirstName = "Ash", LastName = "Ketchum", Budget = 69m, Email = "ash@example.com", Department = Department.ValueC },
