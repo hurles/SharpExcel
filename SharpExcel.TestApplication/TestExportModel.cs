@@ -22,4 +22,7 @@ public class TestExportModel
     
     [ExcelColumnDefinition(columnName: "Budget", width: 15)]
     public decimal Budget { get; set; }
+    
+    [ExcelColumnDefinition(columnName: "Department", width: 15)]
+    public Department Department { get; set; }
 }

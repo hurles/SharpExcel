@@ -16,7 +16,7 @@ public class Tests
     [Test]
     public async Task CreateWorkbookTest()
     {
-        var workbook = await _exporter.BuildWorkbookAsync(CreateTestData());
+        var workbook = await _exporter.GenerateWorkbookAsync(CreateTestData());
         Assert.IsTrue(workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet") is not null);
     }
     
@@ -24,7 +24,7 @@ public class Tests
     public async Task ReadWorkbookTest()
     {
         //create test workbook
-        var workbook = await _exporter.BuildWorkbookAsync(CreateTestData());
+        var workbook = await _exporter.GenerateWorkbookAsync(CreateTestData());
 
         //read workbook
         var output = await _exporter.ReadWorkbookAsync("TestSheet", workbook);

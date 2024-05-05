@@ -13,4 +13,7 @@ public class TestModel
 
     [ExcelColumnDefinition(columnName: "Last Name", width: 50)]
     public string LastName { get; set; } = null!;
+
+    [ExcelColumnDefinition(columnName: "Test value", width: 50)]
+    public TestEnum TestValue { get; set; } = TestEnum.ValueA;
 }

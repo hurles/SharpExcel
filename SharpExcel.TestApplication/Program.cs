@@ -7,14 +7,14 @@ var testData = new ExcelArguments<TestExportModel>()
     SheetName = "Budgets",
     Data = new List<TestExportModel>()
     {
-        new() { Id  = 0, FirstName = "John", LastName = "Doe", Budget = 2400.34m, Email = "john.doe@example.com" },
-        new() { Id  = 1, FirstName = "Jane", LastName = "Doe", Budget = -200.42m, Email = "jane.doe@example.com" },
-        new() { Id  = 2, FirstName = "John", LastName = "Neutron", Budget = 0.0m, Email = null },
-        new() { Id  = 3, FirstName = "Ash", LastName = "Ketchum", Budget = 69m, Email = "ash@example.com" },
-        new() { Id  = 4, FirstName = "Inspector", LastName = "Gadget", Budget = 1337m, Email = "gogogadget@example.com" },
-        new() { Id  = 5, FirstName = "Mindy", LastName = "", Budget = 2400.34m, Email = "mmouse@example.com" },
-        new() { Id  = 6, FirstName = "ThisIsLongerThan10", LastName = "Mouse", Budget = 2400.34m, Email = "mmouse@example.com" },
-        new() { Id  = 7, FirstName = "Name", LastName = "LasName", Budget = 2400.34m, Email = null },
+        new() { Id  = 0, FirstName = "John", LastName = "Doe", Budget = 2400.34m, Email = "john.doe@example.com", Department = Department.ValueA },
+        new() { Id  = 1, FirstName = "Jane", LastName = "Doe", Budget = -200.42m, Email = "jane.doe@example.com", Department = Department.ValueB },
+        new() { Id  = 2, FirstName = "John", LastName = "Neutron", Budget = 0.0m, Email = null, Department = Department.ValueB },
+        new() { Id  = 3, FirstName = "Ash", LastName = "Ketchum", Budget = 69m, Email = "ash@example.com", Department = Department.ValueC },
+        new() { Id  = 4, FirstName = "Inspector", LastName = "Gadget", Budget = 1337m, Email = "gogogadget@example.com", Department = Department.ValueC },
+        new() { Id  = 5, FirstName = "Mindy", LastName = "", Budget = 2400.34m, Email = "mmouse@example.com", Department = Department.ValueA },
+        new() { Id  = 6, FirstName = "ThisIsLongerThan10", LastName = "Mouse", Budget = 2400.34m, Email = "mmouse@example.com", Department = Department.ValueA },
+        new() { Id  = 7, FirstName = "Name", LastName = "LasName", Budget = 2400.34m, Email = null, Department = Department.ValueB },
     }
 };
 
@@ -25,7 +25,7 @@ var exporter = new TestExporter();
 //Create and save a new workbook based on the test data outlined above
 var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
 Console.WriteLine("-- Writing test data to workbook.. --");
-using var workbook = await exporter.BuildWorkbookAsync(testData);
+using var workbook = await exporter.GenerateWorkbookAsync(testData);
 workbook.SaveAs(exportPath);
 Console.WriteLine($"-- Saved successfully: {exportPath} --");
 
@@ -46,7 +46,7 @@ var importedWorkbook = await exporter.ReadWorkbookAsync("Budgets", workbook);
 Console.WriteLine($"-------------------------------------");
 Console.WriteLine($"Results:\n");
 //write headers
-Console.WriteLine($"Id | First name | Last name | Email | Budget");
+Console.WriteLine($"Id | First name | Last name | Email | Budget | Department");
 
 //write read rows
 foreach (var dataItem in importedWorkbook.Records)
@@ -58,7 +58,7 @@ foreach (var dataItem in importedWorkbook.Records)
 //This method is just here to write the results of the read operation.
 void WriteOutputRow(TestExportModel testExportModel, ExcelReadResult<TestExportModel> excelReadResult)
 {
-    Console.WriteLine($"{testExportModel?.Id} | {testExportModel?.FirstName} | {testExportModel?.LastName} | {testExportModel?.Email} | {testExportModel?.Budget}");
+    Console.WriteLine($"{testExportModel?.Id} | {testExportModel?.FirstName} | {testExportModel?.LastName} | {testExportModel?.Email} | {testExportModel?.Budget} | {testExportModel?.Department}");
     
     //print validation errors if needed
     if (testExportModel != null && excelReadResult.ValidationResults.TryGetValue(testExportModel, out var validationResults))
