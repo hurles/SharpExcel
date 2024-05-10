@@ -1,4 +1,5 @@
 using SharpExcel;
+using SharpExcel.Exporters;
 
 namespace SharpExcel.Tests.Shared;
 

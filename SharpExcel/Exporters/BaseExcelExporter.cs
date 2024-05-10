@@ -1,18 +1,15 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using ClosedXML.Excel;
-using SharpExcel.Extensions;
 using SharpExcel.Abstraction;
+using SharpExcel.Extensions;
 using SharpExcel.Models;
-using SharpExcel.Models.Attributes;
+using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling;
 
-namespace SharpExcel;
+namespace SharpExcel.Exporters;
 
 /// <summary>
 /// Base class for creating excel workbooks
@@ -20,6 +17,7 @@ namespace SharpExcel;
 public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     where TModel : class, new()
 {
+    
     /// <summary>
     /// method to actually build workbook
     /// </summary>
@@ -39,7 +37,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var dropdownWorksheet = workbook.AddWorksheet(dropdownDataSheetName);
         //dropdownWorksheet.Hide();
         
-        var headerStyle = OnSetHeaderStyle();
+        var headerStyle = arguments.StylingCollection.DefaultHeaderStyle;
 
         if (headerStyle.RowHeight.HasValue)
         {
@@ -50,14 +48,16 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var rowIndex = 1;
 
         var propertyMappings = TypeMapper.GetModelMetaData<TModel>();
+        
         var optionalColumns = await GetOptionalPropertiesToExport(optionalColumnFunc);
         
-        var dropdownDataMappings = AddEnumDropdownMappings(propertyMappings, dropdownWorksheet);
+        var dropdownDataMappings = EnumExporter.AddEnumDropdownMappings(propertyMappings, dropdownWorksheet);
+
+        var stylingRuleLookup = arguments.StylingCollection.ToStylingRuleLookup();
 
         int offsetColumns = 0;
         for (var columnIndex = 0; columnIndex < propertyMappings.PropertyMappings.Count; columnIndex++)
         {
-
             var mapping = propertyMappings.PropertyMappings[columnIndex];
 
             if (mapping.Conditional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
@@ -98,10 +98,19 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                 }
 
                 var cell = worksheet.Cell(rowIndex, i + 1 - dataOffset /* use +1 because Excel starts at 1 */);
+                
+                var dataStyle = arguments.StylingCollection.DefaultDataStyle;
 
-                var dataStyle = OnSetCellDataStyle(mapping.PropertyInfo.Name, dataItem);
+                if (stylingRuleLookup.TryGetValue(mapping.PropertyInfo.Name, out var rules))
+                {
+                    foreach (var rule in rules)
+                    {
+                        var ruleStyle = rule.EvaluateRules(dataItem);
+                        dataStyle = ruleStyle ?? dataStyle;
+                    }
+                }
 
-                if (dataStyle.RowHeight.HasValue &&  row.Height < dataStyle.RowHeight)
+                if (dataStyle.RowHeight.HasValue && row.Height < dataStyle.RowHeight)
                 {
                     row.Height = dataStyle.RowHeight.Value;
                 }
@@ -111,7 +120,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
                 //handle enums
                 if (mapping.PropertyInfo.PropertyType.IsEnum)
                 {
-                    WriteEnumValue(propertyMappings, mapping, dataValue, cell, dropdownDataMappings, dropdownWorksheet);
+                    EnumExporter.WriteEnumValue(propertyMappings, mapping, dataValue, cell, dropdownDataMappings, dropdownWorksheet);
                 }
                 //handle format
                 else if (mapping.Format != null)
@@ -133,51 +142,6 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         }
         
         return workbook;
-    }
-
-    private static void WriteEnumValue(PropertyDataCollection propertyMappings, PropertyData mapping, object dataValue,
-        IXLCell cell, Dictionary<Type, string> dropdownDataMappings, IXLWorksheet dropdownWorksheet)
-    {
-        if (propertyMappings.EnumMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var enumValues))
-        {
-            var text = dataValue.ToString().Trim().ToLowerInvariant();
-            if (!string.IsNullOrWhiteSpace(text))
-            {
-                foreach (var enumValue in enumValues)
-                {
-                    if (enumValue.Name == text)
-                    {
-                        cell.SetValue(enumValue.VisualName);
-                    }
-                }
-            }
-                        
-            if (dropdownDataMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var range))
-            {
-                cell.CreateDataValidation().List(dropdownWorksheet.Range(range), true);
-            }
-        }
-    }
-
-    private static Dictionary<Type, string> AddEnumDropdownMappings(PropertyDataCollection propertyMappings, IXLWorksheet dropdownWorksheet)
-    {
-        int dropDownWorkbookColumn = 1;
-        var dropdownDataMappings = new Dictionary<Type, string>();
-        foreach (var enumMapping in propertyMappings.EnumMappings)
-        {
-            var columnLength = 0;
-            for (int i = 0; i < enumMapping.Value.Count; i++)
-            {
-                var cell = dropdownWorksheet.Row(i + 1).Cell(dropDownWorkbookColumn);
-                cell.SetValue(enumMapping.Value[i].VisualName);
-                columnLength++;
-            }
-            var letter = dropdownWorksheet.Column(dropDownWorkbookColumn).ColumnLetter();
-            dropdownDataMappings.Add(enumMapping.Key, $"{letter}{1}:{letter}{columnLength + 1}");
-            dropDownWorkbookColumn++;
-        }
-
-        return dropdownDataMappings;
     }
 
     public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null)
@@ -218,7 +182,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         //find header names based on TModel
         var headerNames = new HashSet<string>(propertyData.PropertyMappings.Where(x => !string.IsNullOrWhiteSpace(x.Name)).Select(x => x.Name)!);
 
-        //find header row (so we can skip comments, etc)
+        //find header row
         var headerRowIndex = usedArea
             .Rows(x => x.Cells()
                 .All(c => headerNames.Contains(c.Value.ToString())))
@@ -280,27 +244,6 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         }
 
         return Task.FromResult(output);
-    }
-
-    /// <summary>
-    /// Override this method to set cell style for header row cells.
-    /// </summary>
-    /// <returns></returns>
-    protected virtual SharpExcelCellStyle OnSetHeaderStyle()
-    {
-        return SharpExcelCellStyleConstants.DefaultHeaderStyle;
-    }
-
-    /// <summary>
-    /// Override this method to set cell style for each data cell.
-    /// Record + current column are provided so styling can be different based on conditions given by the user
-    /// </summary>
-    /// <param name="record">current record being processed</param>
-    /// <param name="propertyName">current column being processed</param>
-    /// <returns></returns>
-    protected virtual SharpExcelCellStyle OnSetCellDataStyle(string propertyName, TModel record)
-    {
-        return SharpExcelCellStyleConstants.DefaultDataStyle;
     }
 
     public async Task<HashSet<string>> GetOptionalPropertiesToExport(
@@ -374,84 +317,5 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         }
         
         return default;
-    }
-}
-
-internal static class TypeMapper
-{
-        /// <summary>
-    /// Reads model attributes and converts to column metadata
-    /// </summary>
-    /// <typeparam name="TModel"></typeparam>
-    /// <returns></returns>
-    public static PropertyDataCollection GetModelMetaData<TModel>() 
-    {
-        var propertyDataCollection = new PropertyDataCollection();
-        
-        var dataType = typeof(TModel);
-        for (var columnIndex = 0; columnIndex < dataType.GetProperties().Length; columnIndex++)
-        {
-
-            var property = dataType.GetProperties()[columnIndex];
-
-            var attribute = property.GetCustomAttribute<ExcelColumnDefinitionAttribute>();
-
-            if (attribute is null)
-            {
-                continue;
-            }
-
-            var columnName = property.Name;
-            if (!string.IsNullOrWhiteSpace(attribute?.DisplayName))
-            {
-                columnName = attribute?.DisplayName;
-            }
-            
-            if (property.PropertyType.IsEnum)
-            {
-                if (!propertyDataCollection.EnumMappings.ContainsKey(property.PropertyType))
-                {
-                    propertyDataCollection.EnumMappings.Add(property.PropertyType, GetEnumMappings(property.PropertyType));
-                }
-            }
-
-            propertyDataCollection.PropertyMappings.Add(new PropertyData()
-            {
-                Name = columnName,
-                PropertyInfo = property,
-                Format = attribute?.Format,
-                Conditional = attribute?.IsConditional ?? false,
-                ColumnWidth = attribute?.ColumnWidth ?? -1
-            });
-        }
-
-        return propertyDataCollection;
-    }
-
-    private static List<EnumData> GetEnumMappings(Type propertyType)
-    {
-        if (!propertyType.IsEnum)
-            return new();
-        
-        var enumDataList = new List<EnumData>();
-        var memberInfos = propertyType.GetFields();
-
-        foreach (var member in memberInfos.Where(m => m.FieldType.IsEnum))
-        {
-            var displayAttribute = member.GetCustomAttribute<DisplayAttribute>();
-            object enumValue = Enum.ToObject(propertyType, member.GetRawConstantValue());
-            
-            var enumData = new EnumData()
-            {
-                VisualName = displayAttribute?.Name ?? member.Name,
-                Name = member.Name.ToLowerInvariant(),
-                //use long because technically you can use longs for enum values
-                NumericValue = Convert.ToInt64(member.GetRawConstantValue()),
-                Value = enumValue
-            };
-            enumDataList.Add(enumData);
-        }
-
-        return enumDataList;
     }
 }

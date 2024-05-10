@@ -1,4 +1,6 @@
 using System.Reflection;
+using SharpExcel.Models.Styling;
+using SharpExcel.Models.Styling.Rules;
 
 namespace SharpExcel;
 
@@ -23,15 +25,4 @@ internal class PropertyDataCollection
     public Dictionary<Type, List<EnumData>> EnumMappings { get; set; } = new();
 
     public List<PropertyData> PropertyMappings { get; set; } = new();
-}
-
-internal struct EnumData
-{
-    public string? VisualName { get; set; }
-    public string? Name { get; set; }
-    
-    //use long because technically you can use longs for enum values
-    public long NumericValue { get; set; }
-
-    public object Value { get; set; }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using ClosedXML.Excel;
 using SharpExcel.Models;
+using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Results;
 
 namespace SharpExcel.Abstraction;
@@ -12,7 +13,4 @@ public interface IExcelExporter<TModel>
         Func<string, Task<bool>>? conditionalColumnFunc = null, CultureInfo? cultureInfo = null);
 
     public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null);
-
-    public Task<HashSet<string>> GetOptionalPropertiesToExport(
-        Func<string, Task<bool>>? conditionalColumnFunc = null);
 }

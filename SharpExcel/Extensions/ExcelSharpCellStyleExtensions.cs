@@ -48,14 +48,17 @@ internal static class SharpExcelCellStyleExtensions
             }
         }
 
-        excelStyle.Border.SetBottomBorder(
-            GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Bottom)));
-        excelStyle.Border.SetLeftBorder(
-            GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Left)));
-        excelStyle.Border.SetRightBorder(
-            GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Right)));
-        excelStyle.Border.SetTopBorder(
-            GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Top)));
+        if (cellStyle.Borders is not null)
+        {
+            excelStyle.Border.SetBottomBorder(
+                GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Bottom)));
+            excelStyle.Border.SetLeftBorder(
+                GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Left)));
+            excelStyle.Border.SetRightBorder(
+                GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Right)));
+            excelStyle.Border.SetTopBorder(
+                GetBorderStyleValue(cellStyle.Borders.GetBorderStyle(BorderDirection.Top)));
+        }
     }
 
     private static XLBorderStyleValues GetBorderStyleValue(BorderStyle borderStyle)

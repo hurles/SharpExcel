@@ -1,5 +1,6 @@
 using SharpExcel.Tests.Shared;
 using SharpExcel.Models;
+using SharpExcel.Models.Arguments;
 
 namespace SharpExcel.Tests;
 

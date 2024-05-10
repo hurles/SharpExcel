@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SharpExcel.TestApplication;
 
-public enum Department
+public enum TestDepartment
 {
     Unknown,
     [Display(Name = "Accounting")]

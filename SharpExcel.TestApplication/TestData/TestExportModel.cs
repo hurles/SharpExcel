@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SharpExcel.Models.Attributes;
+using SharpExcel.TestApplication.TestData;
 
 namespace SharpExcel.TestApplication;
 
@@ -7,6 +8,9 @@ public class TestExportModel
 {
     [ExcelColumnDefinition(columnName: "ID", width: 20)]
     public int Id { get; set; }
+    
+    [ExcelColumnDefinition(columnName: "Status", width: 15)]
+    public TestStatus Status { get; set; }
 
     [StringLength(10)]
     [ExcelColumnDefinition(columnName: "First Name", width: 30)]
@@ -24,5 +28,5 @@ public class TestExportModel
     public decimal Budget { get; set; }
     
     [ExcelColumnDefinition(columnName: "Department", width: 15)]
-    public Department Department { get; set; }
+    public TestDepartment TestDepartment { get; set; }
 }

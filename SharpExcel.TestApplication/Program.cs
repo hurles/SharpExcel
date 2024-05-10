@@ -1,22 +1,38 @@
 ﻿using SharpExcel.Models;
+using SharpExcel.Models.Arguments;
+using SharpExcel.Models.Arguments.Extensions;
 using SharpExcel.Models.Results;
+using SharpExcel.Models.Styling;
+using SharpExcel.Models.Styling.Colorization;
+using SharpExcel.Models.Styling.Extensions;
 using SharpExcel.TestApplication;
+using SharpExcel.TestApplication.TestData;
 
-var testData = new ExcelArguments<TestExportModel>()
+var excelArguments = new ExcelArguments<TestExportModel>()
 {
     SheetName = "Budgets",
-    Data = new List<TestExportModel>()
-    {
-        new() { Id  = 0, FirstName = "John", LastName = "Doe", Budget = 2400.34m, Email = "john.doe@example.com", Department = Department.Unknown },
-        new() { Id  = 1, FirstName = "Jane", LastName = "Doe", Budget = -200.42m, Email = "jane.doe@example.com", Department = Department.ValueB },
-        new() { Id  = 2, FirstName = "John", LastName = "Neutron", Budget = 0.0m, Email = null, Department = Department.ValueB },
-        new() { Id  = 3, FirstName = "Ash", LastName = "Ketchum", Budget = 69m, Email = "ash@example.com", Department = Department.ValueC },
-        new() { Id  = 4, FirstName = "Inspector", LastName = "Gadget", Budget = 1337m, Email = "gogogadget@example.com", Department = Department.ValueC },
-        new() { Id  = 5, FirstName = "Mindy", LastName = "", Budget = 2400.34m, Email = "mmouse@example.com", Department = Department.ValueA },
-        new() { Id  = 6, FirstName = "ThisIsLongerThan10", LastName = "Mouse", Budget = 2400.34m, Email = "mmouse@example.com", Department = Department.ValueA },
-        new() { Id  = 7, FirstName = "Name", LastName = "LasName", Budget = 2400.34m, Email = null, Department = Department.ValueB },
-    }
+    Data = TestDataProvider.GetTestData()
 };
+
+excelArguments.AddStylingRule()
+    .ForProperty(nameof(TestExportModel.Budget))
+    .WithCondition(x => x.Budget < 0.0m)
+    .WhenTrue(new SharpExcelCellStyle()
+    {
+        TextColor = SharpExcelColorConstants.Red
+    })
+    .WhenFalse(new SharpExcelCellStyle()
+    {
+        TextColor = SharpExcelColorConstants.Green
+    });
+
+excelArguments.AddStylingRule()
+    .ForProperty(nameof(TestExportModel.Status))
+    .WithCondition(x => x.Status == TestStatus.Employed)
+    .WhenTrue(new SharpExcelCellStyle()
+    {
+        TextColor = SharpExcelColorConstants.Green
+    });
 
 //create exporter. This is of type BaseExcelExporter<TestExportModel>
 var exporter = new TestExporter();
@@ -25,7 +41,7 @@ var exporter = new TestExporter();
 //Create and save a new workbook based on the test data outlined above
 var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
 Console.WriteLine("-- Writing test data to workbook.. --");
-using var workbook = await exporter.GenerateWorkbookAsync(testData);
+using var workbook = await exporter.GenerateWorkbookAsync(excelArguments);
 workbook.SaveAs(exportPath);
 Console.WriteLine($"-- Saved successfully: {exportPath} --");
 
@@ -58,7 +74,7 @@ foreach (var dataItem in importedWorkbook.Records)
 //This method is just here to write the results of the read operation.
 void WriteOutputRow(TestExportModel testExportModel, ExcelReadResult<TestExportModel> excelReadResult)
 {
-    Console.WriteLine($"{testExportModel?.Id} | {testExportModel?.FirstName} | {testExportModel?.LastName} | {testExportModel?.Email} | {testExportModel?.Budget} | {testExportModel?.Department}");
+    Console.WriteLine($"{testExportModel?.Id} | {testExportModel?.FirstName} | {testExportModel?.LastName} | {testExportModel?.Email} | {testExportModel?.Budget} | {testExportModel?.TestDepartment}");
     
     //print validation errors if needed
     if (testExportModel != null && excelReadResult.ValidationResults.TryGetValue(testExportModel, out var validationResults))
