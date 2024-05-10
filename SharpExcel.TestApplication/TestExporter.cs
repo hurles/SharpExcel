@@ -1,11 +1,13 @@
+using Microsoft.Extensions.Options;
 using SharpExcel.Exporters;
-using SharpExcel.Models.Styling;
-using SharpExcel.Models.Styling.Colorization;
-using SharpExcel.Models.Styling.Text;
+using SharpExcel.Models.Configuration;
+using SharpExcel.TestApplication.TestData;
 
 namespace SharpExcel.TestApplication;
 
 public class TestExporter : BaseExcelExporter<TestExportModel>
 {
-    
+    public TestExporter(IOptions<ExporterOptions<TestExportModel>> options) : base(options)
+    {
+    }
 }

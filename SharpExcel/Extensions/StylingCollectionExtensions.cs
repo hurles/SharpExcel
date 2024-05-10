@@ -1,4 +1,5 @@
 using SharpExcel.Models.Arguments;
+using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Rules;
 
 namespace SharpExcel.Extensions;

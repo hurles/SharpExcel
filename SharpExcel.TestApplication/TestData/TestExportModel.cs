@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using SharpExcel.Models.Attributes;
-using SharpExcel.TestApplication.TestData;
 
-namespace SharpExcel.TestApplication;
+namespace SharpExcel.TestApplication.TestData;
 
 public class TestExportModel
 {

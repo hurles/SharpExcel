@@ -2,30 +2,52 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
 using ClosedXML.Excel;
+using Microsoft.Extensions.Options;
 using SharpExcel.Abstraction;
 using SharpExcel.Extensions;
 using SharpExcel.Models;
 using SharpExcel.Models.Arguments;
+using SharpExcel.Models.Configuration;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling;
+using SharpExcel.Models.Styling.Constants;
 
 namespace SharpExcel.Exporters;
 
 /// <summary>
 /// Base class for creating excel workbooks
 /// </summary>
-public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
+public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     where TModel : class, new()
 {
+    private readonly IOptions<ExporterOptions<TModel>> _options;
+
+    public BaseExcelExporter(IOptions<ExporterOptions<TModel>> options)
+    {
+        _options = options;
+    }
+    /// <inheritdoc />
+    public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null)
+    {
+        var parsedWorkbook = await ReadWorkbookAsync(sheetName, workbook, cultureInfo);
+
+        foreach (var result in parsedWorkbook.ValidationResults)
+        {
+            var cell = workbook.Worksheet(sheetName).Cell(result.Value.Address.RowNumber, result.Value.Address.ColumnId);
+            var stringBuilder = new StringBuilder();
+            foreach (var item in result.Value.ValidationResults)
+            {
+                stringBuilder.AppendLine(item.ErrorMessage);
+            }
+            cell.Style.ApplyStyle(SharpExcelCellStyleConstants.DefaultErrorStyle);
+            cell.CreateComment().AddText(stringBuilder.ToString());
+        }
+
+        return workbook;
+    }
     
-    /// <summary>
-    /// method to actually build workbook
-    /// </summary>
-    /// <param name="arguments"></param>
-    /// <param name="optionalColumnFunc">Functions that returns a boolean based on Property name of TModel (not column name), indicating whether or not to write the specified property based on a condition</param>
-    /// <param name="cultureInfo">Culture used to generate workbook</param>
-    /// <returns></returns>
-    public async Task<XLWorkbook> GenerateWorkbookAsync(ExcelArguments<TModel> arguments,
+    /// <inheritdoc />
+    public async Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data,
         Func<string, Task<bool>>? optionalColumnFunc = null, CultureInfo? cultureInfo = null)
     {
         var workbook = new XLWorkbook();
@@ -37,7 +59,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var dropdownWorksheet = workbook.AddWorksheet(dropdownDataSheetName);
         //dropdownWorksheet.Hide();
         
-        var headerStyle = arguments.StylingCollection.DefaultHeaderStyle;
+        var headerStyle = _options.Value.Styling.DefaultHeaderStyle;
 
         if (headerStyle.RowHeight.HasValue)
         {
@@ -53,7 +75,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         
         var dropdownDataMappings = EnumExporter.AddEnumDropdownMappings(propertyMappings, dropdownWorksheet);
 
-        var stylingRuleLookup = arguments.StylingCollection.ToStylingRuleLookup();
+        var stylingRuleLookup = _options.Value.Styling.ToStylingRuleLookup();
 
         int offsetColumns = 0;
         for (var columnIndex = 0; columnIndex < propertyMappings.PropertyMappings.Count; columnIndex++)
@@ -79,11 +101,8 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
         //go to next row to start inserting data
         rowIndex++;
-
-        if (arguments?.Data is null)
-            return workbook;
-
-        foreach (var dataItem in arguments?.Data!)
+        
+        foreach (var dataItem in data)
         {
             var dataOffset = 0;
             for (var i = 0; i < propertyMappings.PropertyMappings.Count; i++)
@@ -99,7 +118,7 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
                 var cell = worksheet.Cell(rowIndex, i + 1 - dataOffset /* use +1 because Excel starts at 1 */);
                 
-                var dataStyle = arguments.StylingCollection.DefaultDataStyle;
+                var dataStyle = _options.Value.Styling.DefaultDataStyle;
 
                 if (stylingRuleLookup.TryGetValue(mapping.PropertyInfo.Name, out var rules))
                 {
@@ -144,33 +163,8 @@ public abstract class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         return workbook;
     }
 
-    public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null)
-    {
-        var parsedWorkbook = await ReadWorkbookAsync(sheetName, workbook, cultureInfo);
-
-        foreach (var result in parsedWorkbook.ValidationResults)
-        {
-            var cell = workbook.Worksheet(sheetName).Cell(result.Value.Address.RowNumber, result.Value.Address.ColumnId);
-            var stringBuilder = new StringBuilder();
-            foreach (var item in result.Value.ValidationResults)
-            {
-                stringBuilder.AppendLine(item.ErrorMessage);
-            }
-            cell.Style.ApplyStyle(SharpExcelCellStyleConstants.DefaultErrorStyle);
-            cell.CreateComment().AddText(stringBuilder.ToString());
-        }
-
-        return workbook;
-    }
-
-    /// <summary>
-    /// Reads a workbook to convert it into the given model
-    /// </summary>
-    /// <param name="sheetName">name of the sheet to read from</param>
-    /// <param name="workbook"></param>
-    /// <param name="cultureInfo">culture used, defaults to CurrentCulture if null</param>
-    /// <typeparam name="TModel"></typeparam>
-    /// <returns></returns>
+    
+    /// <inheritdoc />
     public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null)
     {
         var output = new ExcelReadResult<TModel>();

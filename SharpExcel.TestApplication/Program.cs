@@ -1,89 +1,82 @@
-﻿using SharpExcel.Models;
-using SharpExcel.Models.Arguments;
-using SharpExcel.Models.Arguments.Extensions;
+﻿using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Results;
-using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Colorization;
-using SharpExcel.Models.Styling.Extensions;
-using SharpExcel.TestApplication;
 using SharpExcel.TestApplication.TestData;
 
-var excelArguments = new ExcelArguments<TestExportModel>()
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using SharpExcel.Abstraction;
+using SharpExcel.DependencyInjection;
+using SharpExcel.Models.Styling.Constants;
+
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddDefaultExporter<TestExportModel>(options =>
 {
-    SheetName = "Budgets",
-    Data = TestDataProvider.GetTestData()
-};
+    options.WithDataStyle(SharpExcelCellStyleConstants.DefaultDataStyle)
+        .WithHeaderStyle(SharpExcelCellStyleConstants.DefaultHeaderStyle)
+        .WithErrorStyle(
+            SharpExcelCellStyleConstants.DefaultDataStyle
+                .WithTextColor(new SharpExcelColor(255, 100, 100))
+                .WithBackgroundColor(new SharpExcelColor(255, 100, 100, 70))
+        )
+        .AddStylingRule()
+            .ForProperty(nameof(TestExportModel.Budget))
+            .WithCondition(x => x.Budget < 0)
+        .WhenTrue(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(255,100,100)))
+        .WhenFalse(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(80,160,80)));
 
-excelArguments.AddStylingRule()
-    .ForProperty(nameof(TestExportModel.Budget))
-    .WithCondition(x => x.Budget < 0.0m)
-    .WhenTrue(new SharpExcelCellStyle()
-    {
-        TextColor = SharpExcelColorConstants.Red
-    })
-    .WhenFalse(new SharpExcelCellStyle()
-    {
-        TextColor = SharpExcelColorConstants.Green
-    });
+});
 
-excelArguments.AddStylingRule()
-    .ForProperty(nameof(TestExportModel.Status))
-    .WithCondition(x => x.Status == TestStatus.Employed)
-    .WhenTrue(new SharpExcelCellStyle()
-    {
-        TextColor = SharpExcelColorConstants.Green
-    });
+using IHost host = builder.Build();
+await RunApp(host.Services);
+await host.RunAsync();
 
-//create exporter. This is of type BaseExcelExporter<TestExportModel>
-var exporter = new TestExporter();
-
-//Step 1 -- Writing:
-//Create and save a new workbook based on the test data outlined above
-var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
-Console.WriteLine("-- Writing test data to workbook.. --");
-using var workbook = await exporter.GenerateWorkbookAsync(excelArguments);
-workbook.SaveAs(exportPath);
-Console.WriteLine($"-- Saved successfully: {exportPath} --");
-
-//Step 2 -- Validation:
-//Modify the original workbook so it highlights and annotates invalid cells.
-//The conditions for field validation are determined by data annotations on TestExportModel.
-Console.WriteLine($"-- Validating workbook --");
-var validationExportPath = $"./OutputFolder/ErrorChecked-{Guid.NewGuid()}.xlsx";
-var errorCheckedWorkbook = await exporter.ValidateAndAnnotateWorkbookAsync("Budgets", workbook);
-errorCheckedWorkbook.SaveAs(validationExportPath);
-Console.WriteLine($"-- Saved successfully: {validationExportPath} --");
-
-//Step 3 -- Reading
-//Read and import the workbook, and turn it back into a collection of TestExportModel
-Console.WriteLine($"-- Reading workbook --");
-var importedWorkbook = await exporter.ReadWorkbookAsync("Budgets", workbook);
-
-Console.WriteLine($"-------------------------------------");
-Console.WriteLine($"Results:\n");
-//write headers
-Console.WriteLine($"Id | First name | Last name | Email | Budget | Department");
-
-//write read rows
-foreach (var dataItem in importedWorkbook.Records)
+async Task RunApp(IServiceProvider services)
 {
-    WriteOutputRow(dataItem, importedWorkbook);
-}
-
-
-//This method is just here to write the results of the read operation.
-void WriteOutputRow(TestExportModel testExportModel, ExcelReadResult<TestExportModel> excelReadResult)
-{
-    Console.WriteLine($"{testExportModel?.Id} | {testExportModel?.FirstName} | {testExportModel?.LastName} | {testExportModel?.Email} | {testExportModel?.Budget} | {testExportModel?.TestDepartment}");
+    var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
+    var validationExportPath = $"./OutputFolder/ErrorChecked-{Guid.NewGuid()}.xlsx";
     
-    //print validation errors if needed
-    if (testExportModel != null && excelReadResult.ValidationResults.TryGetValue(testExportModel, out var validationResults))
+    var excelArguments = new SharpExcelArguments()
     {
-        foreach (var validationResult in validationResults.ValidationResults)
+        SheetName = "Budgets"
+    };
+    
+    var exportService = services.GetRequiredService<IExcelExporter<TestExportModel>>();
+
+    using var workbook = await exportService.GenerateWorkbookAsync(excelArguments, TestDataProvider.GetTestData());
+    workbook.SaveAs(exportPath);
+
+    using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync("Budgets", workbook);
+    errorCheckedWorkbook.SaveAs(validationExportPath);
+
+    var importedWorkbook = await exportService.ReadWorkbookAsync("Budgets", workbook);
+
+    foreach (var dataItem in importedWorkbook.Records)
+    {
+        WriteOutputRow(dataItem, importedWorkbook);
+    }
+    
+    //This method is just here to write the results of the read operation.
+    void WriteOutputRow(TestExportModel testExportModel, ExcelReadResult<TestExportModel> excelReadResult)
+    {
+        Console.WriteLine($"{testExportModel?.Id} | {testExportModel?.FirstName} | {testExportModel?.LastName} | {testExportModel?.Email} | {testExportModel?.Budget} | {testExportModel?.TestDepartment}");
+    
+        //print validation errors if needed
+        if (testExportModel != null && excelReadResult.ValidationResults.TryGetValue(testExportModel, out var validationResults))
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"\tValidation Error on row {validationResults.Address.RowNumber} in column {validationResults.Address.ColumnName} ({validationResults.Address.HeaderName}): {validationResult.ErrorMessage}");
-            Console.ResetColor();
+            foreach (var validationResult in validationResults.ValidationResults)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"\tValidation Error on row {validationResults.Address.RowNumber} in column {validationResults.Address.ColumnName} ({validationResults.Address.HeaderName}): {validationResult.ErrorMessage}");
+                Console.ResetColor();
+            }
         }
     }
 }
+
+
+
+//write read rows
+
+

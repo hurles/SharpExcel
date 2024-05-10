@@ -9,7 +9,7 @@ namespace SharpExcel.Models.Styling;
 /// </summary>
 public struct SharpExcelCellStyle
 {
-    public SharpExcelCellStyle(SharpExcelColor textColor, SharpExcelColor backgroundColor, TextStyle textStyle, float? rowHeight = null, float? fontSize = null,
+    public SharpExcelCellStyle(SharpExcelColor textColor, SharpExcelColor backgroundColor, TextStyle textStyle, double? rowHeight = null, double? fontSize = null,
         BorderCollection? borders = null)
     {
         Borders = borders ?? BorderCollection.DataDefault;
@@ -30,7 +30,7 @@ public struct SharpExcelCellStyle
     /// Background color used for cell
     /// if null, default color is used
     /// </summary>
-    public SharpExcelColor? BackgroundColor { get; set; } = SharpExcelColorConstants.Black;
+    public SharpExcelColor? BackgroundColor { get; set;} = SharpExcelColorConstants.TransparentWhite;
 
     /// <summary>
     /// Text style (Bold, Italic, etc)
@@ -42,7 +42,7 @@ public struct SharpExcelCellStyle
     /// Height of cell
     /// if null, default height is used
     /// </summary>
-    public double? RowHeight { get; set; }
+    public double? RowHeight { get; set; } = 20;
 
     /// <summary>
     /// font size
@@ -54,4 +54,77 @@ public struct SharpExcelCellStyle
     /// Border styling
     /// </summary>
     public BorderCollection Borders { get; set; } = BorderCollection.DataDefault;
+    
+    public SharpExcelCellStyle WithTextColor(SharpExcelColor color)
+    {
+        return new SharpExcelCellStyle(
+            color,
+            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+            TextStyle,
+            RowHeight,
+            FontSize,
+            Borders
+        );
+    }
+    
+    public SharpExcelCellStyle WithBackgroundColor(SharpExcelColor color)
+    {
+        return new SharpExcelCellStyle(
+            TextColor ?? SharpExcelColorConstants.Black,
+            color,
+            TextStyle,
+            RowHeight,
+            FontSize,
+            Borders
+        );
+    }
+    
+    public SharpExcelCellStyle WithTextStyle(TextStyle textStyle)
+    {
+        return new SharpExcelCellStyle(
+            TextColor ?? SharpExcelColorConstants.Black,
+            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+            textStyle,
+            RowHeight,
+            FontSize,
+            Borders
+        );
+    }
+
+    public SharpExcelCellStyle WithRowHeight(double height)
+    {
+        return new SharpExcelCellStyle(
+            TextColor ?? SharpExcelColorConstants.Black,
+            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+            TextStyle,
+            height,
+            FontSize,
+            Borders
+        );
+    }
+    
+    public SharpExcelCellStyle WithFontSize(double fontSize)
+    {
+        return new SharpExcelCellStyle(
+            TextColor ?? SharpExcelColorConstants.Black,
+            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+            TextStyle,
+            RowHeight,
+            fontSize,
+            Borders
+        );
+    }
+    
+    public SharpExcelCellStyle WithBorders(BorderCollection borders)
+    {
+        return new SharpExcelCellStyle(
+            TextColor ?? SharpExcelColorConstants.Black,
+            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+            TextStyle,
+            RowHeight,
+            FontSize,
+            borders
+        );
+    }
+
 }

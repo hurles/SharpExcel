@@ -2,7 +2,7 @@ using SharpExcel.Models.Styling.Borders;
 using SharpExcel.Models.Styling.Colorization;
 using SharpExcel.Models.Styling.Text;
 
-namespace SharpExcel.Models.Styling;
+namespace SharpExcel.Models.Styling.Constants;
 
 public static class SharpExcelCellStyleConstants
 {

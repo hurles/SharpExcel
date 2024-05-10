@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SharpExcel.TestApplication;
+namespace SharpExcel.TestApplication.TestData;
 
 public enum TestDepartment
 {
