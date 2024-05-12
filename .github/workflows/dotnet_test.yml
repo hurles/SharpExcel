@@ -23,4 +23,4 @@ jobs:
     - name: run tests
       run: | 
         cd dotnet_build
-        dotnet test "bin/${{ inputs.project }}/debug/${{ inputs.project }}.dll" --no-build
+        dotnet test "bin/${{ inputs.projectname }}/debug/${{ inputs.projectname }}.dll" --no-build
