@@ -12,6 +12,4 @@ public class ExcelColumnDefinitionAttribute(
     public int ColumnWidth { get; set; } = width;
 
     public string? Format { get; set; } = format;
-
-    public bool IsConditional { get; set; } = isConditional;
 }

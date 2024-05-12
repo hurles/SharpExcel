@@ -56,12 +56,11 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var rowIndex = 1;
 
         var propertyMappings = TypeMapper.GetModelMetaData<TModel>();
-        var optionalColumns = await GetOptionalPropertiesToExport(optionalColumnFunc);
         var dropdownDataMappings = EnumExporter.AddEnumDropdownMappingsToSheet(propertyMappings, dropdownWorksheet);
         var stylingRuleLookup = _options.Value.Styling.ToStylingRuleLookup();
 
         int offsetColumns = 0;
-        WriteHeaderRow(propertyMappings, optionalColumns, offsetColumns, worksheet, rowIndex, headerStyle);
+        WriteHeaderRow(propertyMappings, offsetColumns, worksheet, rowIndex, headerStyle);
 
         //go to next row to start inserting data
         rowIndex++;
@@ -128,19 +127,13 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         }
     }
 
-    private static void WriteHeaderRow(PropertyDataCollection propertyMappings, HashSet<string> optionalColumns, int offsetColumns,
+    private static void WriteHeaderRow(PropertyDataCollection propertyMappings,  int offsetColumns,
         IXLWorksheet worksheet, int rowIndex, SharpExcelCellStyle headerStyle)
     {
         for (var columnIndex = 0; columnIndex < propertyMappings.PropertyMappings.Count; columnIndex++)
         {
             var mapping = propertyMappings.PropertyMappings[columnIndex];
-
-            if (mapping.Conditional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
-            {
-                offsetColumns++;
-                continue;
-            }
-
+            
             var cell = worksheet.Cell(rowIndex, columnIndex + 1 - offsetColumns /* use +1 because Excel starts at 1 */);
             cell.Style.ApplyStyle(headerStyle);
 
@@ -253,25 +246,7 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
         return Task.FromResult(output);
     }
-
-    public async Task<HashSet<string>> GetOptionalPropertiesToExport(
-        Func<string, Task<bool>>? conditionalColumnFunc = null)
-    {
-        var output = new List<string>();
-
-        var conditionalProperties = TypeMapper.GetModelMetaData<TModel>().PropertyMappings.Where(x => x.Conditional);
-
-        foreach (var optional in conditionalProperties)
-        {
-            if (conditionalColumnFunc != null && await conditionalColumnFunc(optional.PropertyInfo.Name))
-            {
-                output.Add(optional.PropertyInfo.Name);
-            }
-        }
-        
-        return [..output];
-    }
-
+    
     static object? TrySetValue(PropertyDataCollection dataCollection, PropertyData columnData, IXLCell cell, CultureInfo cultureInfo)
     {
         //extract underlying nullable type if there is one

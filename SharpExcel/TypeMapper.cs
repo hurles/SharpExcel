@@ -48,7 +48,6 @@ internal static class TypeMapper
                 NormalizedName = columnName?.ToLowerInvariant(),
                 PropertyInfo = property,
                 Format = attribute?.Format,
-                Conditional = attribute?.IsConditional ?? false,
                 ColumnWidth = attribute?.ColumnWidth ?? -1
             });
         }

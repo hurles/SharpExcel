@@ -14,9 +14,7 @@ internal class PropertyData
     public string? Format { get; set; }
 
     public int ColumnWidth { get; set; }
-
-    public bool Conditional { get; set; }
-
+    
     public PropertyInfo PropertyInfo { get; set; } = null!;
 
 

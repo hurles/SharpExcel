@@ -36,22 +36,28 @@ async Task RunApp(IServiceProvider services)
 {
     var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
     var validationExportPath = $"./OutputFolder/ErrorChecked-{Guid.NewGuid()}.xlsx";
-    
+    var exportService = services.GetRequiredService<IExcelExporter<TestExportModel>>();
+
+    #region write-workbook
     var excelArguments = new SharpExcelArguments()
     {
         SheetName = "Budgets"
     };
     
-    var exportService = services.GetRequiredService<IExcelExporter<TestExportModel>>();
-
     using var workbook = await exportService.GenerateWorkbookAsync(excelArguments, TestDataProvider.GetTestData());
     workbook.SaveAs(exportPath);
-
+    #endregion
+    
+    #region validate-workbook
     using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync("Budgets", workbook);
     errorCheckedWorkbook.SaveAs(validationExportPath);
+    #endregion
 
+    #region read-workbook
     var importedWorkbook = await exportService.ReadWorkbookAsync("Budgets", workbook);
+    #endregion
 
+    #region write_output
     foreach (var dataItem in importedWorkbook.Records)
     {
         WriteOutputRow(dataItem, importedWorkbook);
@@ -73,6 +79,7 @@ async Task RunApp(IServiceProvider services)
             }
         }
     }
+    #endregion
 }
 
 
