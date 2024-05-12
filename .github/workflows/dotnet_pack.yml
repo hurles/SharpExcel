@@ -21,7 +21,7 @@ jobs:
     - name: write output
       run: ls
     - name: create package
-      run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o "package_output/${{ inputs.projectname }}" -c Release /p:Version=${{ inputs.version }}
+      run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o package_output/${{ inputs.projectname }} -c Release /p:Version=${{ inputs.version }}
     - name: write output
       run: |
         cd package_output/${{ inputs.projectname }}
