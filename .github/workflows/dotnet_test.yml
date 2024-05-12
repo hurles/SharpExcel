@@ -7,14 +7,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: checkout
-      uses: actions/checkout@v4
     - name: initialize dotnet
       uses: actions/setup-dotnet@v4
     - name: obtain artifact
       uses: actions/cache/restore@v4
       with:
-        path: dotnet_build
+        path: ./dotnet_build
         key: build
     - name: write output
       run: ls
