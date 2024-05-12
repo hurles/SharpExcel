@@ -14,4 +14,4 @@ jobs:
     uses: ./.github/workflows/dotnet_test.yml
   package:
     needs: test
-    uses: ./.github/workflows/dotnet_package.yml
+    uses: ./.github/workflows/dotnet_pack.yml
