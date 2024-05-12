@@ -3,6 +3,11 @@ name: dotnet_restore_and_build
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'the version string'
+        required: true
+        type: string
 
 jobs:
   build:

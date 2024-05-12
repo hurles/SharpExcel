@@ -4,11 +4,16 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-  workflow_dispatch: 
-
+  workflow_dispatch:
+    
+env:
+    VERSION_STRING: 0.0.1-alpha${GITHUB_SHA::6}
+    
 jobs:
   build:
     uses: ./.github/workflows/dotnet_build_restore.yml
+    with:
+      version: ${{ env.VERSION_STRING }}
   test:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml
@@ -17,3 +22,6 @@ jobs:
   package:
     needs: test
     uses: ./.github/workflows/dotnet_pack.yml
+    with:
+      version: ${{ env.VERSION_STRING }}
+      project: SharpExcel

@@ -2,14 +2,27 @@ name: dotnet_create_package
 
 on:
   workflow_call:
-
+    inputs:
+      version:
+        description: 'the version string'
+        required: true
+        type: string
+      projectname:
+        description: 'name of project'
+        required: true
+        type: string
+        
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - name: checkout
       uses: actions/checkout@v4
-    - name: obtain artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: build
+    - name: write output
+      run: ls
+    - name: create package
+      run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o "package_output/${{ inputs.projectname }}" -c Release /p:Version=${{ inputs.version }}
+    - name: write output
+      run: |
+        cd package_output/${{ inputs.projectname }}
+        ls
