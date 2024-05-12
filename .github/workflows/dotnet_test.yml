@@ -1,0 +1,19 @@
+name: dotnet_create_package
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: initialize dotnet
+      uses: actions/setup-dotnet@v4
+    - name: obtain artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: build
+    - name: run tests
+      run: dotnet test "dotnet_build"
