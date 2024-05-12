@@ -15,9 +15,11 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: dotnet restore + build
-      run: dotnet build "/p:Version=0.0.1-alpha${GITHUB_SHA::6}" --artifacts-path "dotnet_build"
+      run: dotnet build "/p:Version=0.0.1-alpha${GITHUB_SHA::6}" -o "dotnet_build"
+    - name: write output
+      run: ls
     - name: create artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/cache@v2
       with:
-         name: build
+         key: build
          path: dotnet_build

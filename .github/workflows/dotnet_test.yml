@@ -12,9 +12,12 @@ jobs:
     - name: initialize dotnet
       uses: actions/setup-dotnet@v4
     - name: obtain artifact
-      uses: actions/download-artifact@v2
+      uses: actions/cache/restore@v4
       with:
-        name: build
+        path: dotnet_build
+        key: build
+    - name: write output
+      run: ls
     - name: run tests
       run: | 
         cd dotnet_build
