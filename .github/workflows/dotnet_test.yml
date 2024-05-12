@@ -2,7 +2,11 @@ name: dotnet_create_package
 
 on:
   workflow_call:
-
+    inputs:
+      project:
+        description: 'The product to run dotnet test on'
+        required: true
+        type: string
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,4 +23,4 @@ jobs:
     - name: run tests
       run: | 
         cd dotnet_build
-        dotnet test --no-build
+        dotnet test ${{ inputs.project }} --no-build

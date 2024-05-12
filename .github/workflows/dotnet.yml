@@ -12,6 +12,8 @@ jobs:
   test:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml
+    with:
+      project: SharpExcel.Tests
   package:
     needs: test
     uses: ./.github/workflows/dotnet_pack.yml
