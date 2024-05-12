@@ -10,14 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: restore
-        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_restore.yml@main
+        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_restore.yml
   test:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: test
-        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_test.yml@main
+        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_test.yml
   package:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: test
-        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_package.yml@main
+        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_package.yml
