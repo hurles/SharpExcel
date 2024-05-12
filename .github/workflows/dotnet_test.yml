@@ -16,4 +16,4 @@ jobs:
       with:
         name: build
     - name: run tests
-      run: dotnet test "dotnet_build"
+      run: dotnet test "./dotnet_build" --no-build
