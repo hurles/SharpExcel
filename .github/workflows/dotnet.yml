@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/dotnet_restore.yml@main
+    uses: ./.github/workflows/dotnet_build_restore.yml@main
   test:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml@main
