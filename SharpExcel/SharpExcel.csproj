@@ -4,8 +4,15 @@
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
         <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+        <PackageId>SharpExcel</PackageId>
+        <PackageVersion>alpha-0.0.1</PackageVersion>
+        <Authors>Joost Meulenkamp</Authors>
+        <Description>A library that provides easy in and exporting of Excel files</Description>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageReleaseNotes>First alpha release</PackageReleaseNotes>
+        <PackageTags>excel export import convert validate validation</PackageTags>
     </PropertyGroup>
-
+    
     <ItemGroup>
       <PackageReference Include="ClosedXML" Version="0.102.2" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
