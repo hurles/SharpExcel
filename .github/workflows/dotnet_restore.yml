@@ -8,17 +8,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: initialize dotnet
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
     - name: dotnet restore
       run: dotnet restore
     - name: dotnet build
-      run: dotnet build "/p:Version=0.0.1-alpha" --artifacts-path dotnet_build --no-restore  
+      run: dotnet build "/p:Version=0.0.1-alpha" --artifacts-path "dotnet_build" --no-restore  
     - name: create artifact
-    - uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2
       with:
          name: build
          path: dotnet_build

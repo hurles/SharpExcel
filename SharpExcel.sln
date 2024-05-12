@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		.github\workflows\get_tag_name.yml = .github\workflows\get_tag_name.yml
-		.github\workflows\steps\dotnet_restore.yml = .github\workflows\steps\dotnet_restore.yml
+		.github\workflows\dotnet_restore.yml = .github\workflows\dotnet_restore.yml
 	EndProjectSection
 EndProject
 Global
