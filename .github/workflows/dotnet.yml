@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/dotnet_build_restore.yml
+    with:
+      version: $VERSION_STRING
   test:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml
@@ -22,3 +24,4 @@ jobs:
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       projectname: SharpExcel
+      version: $VERSION_STRING
