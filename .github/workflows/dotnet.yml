@@ -8,10 +8,10 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/dotnet_build_restore.yml@main
+    uses: ./.github/workflows/dotnet_build_restore.yml
   test:
     needs: build
-    uses: ./.github/workflows/dotnet_test.yml@main
+    uses: ./.github/workflows/dotnet_test.yml
   package:
     needs: test
-    uses: ./.github/workflows/dotnet_package.yml@main
+    uses: ./.github/workflows/dotnet_package.yml
