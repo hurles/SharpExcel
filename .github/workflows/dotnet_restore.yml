@@ -14,10 +14,8 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: dotnet restore
-      run: dotnet restore
-    - name: dotnet build
-      run: dotnet build "/p:Version=0.0.1-alpha" --artifacts-path "dotnet_build" --no-restore  
+    - name: dotnet restore + build
+      run: dotnet build "/p:Version=0.0.1-alpha" --artifacts-path "dotnet_build"
     - name: create artifact
       uses: actions/upload-artifact@v2
       with:
