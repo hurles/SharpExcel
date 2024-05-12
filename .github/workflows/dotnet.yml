@@ -1,7 +1,4 @@
 name: SharpExcel build pipeline
-
-env:
-  VERSION_STRING: 0.0.1-alpha${GITHUB_SHA::6}
   
 on:
   push:
@@ -13,7 +10,7 @@ jobs:
   build:
     uses: ./.github/workflows/dotnet_build_restore.yml
     with:
-      version: ${VERSION_STRING}
+      version: 0.0.1-alpha${GITHUB_SHA::6}
   test:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml
@@ -24,4 +21,4 @@ jobs:
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       projectname: SharpExcel
-      version: ${VERSION_STRING}
+      version: 0.0.1-alpha${GITHUB_SHA::6}
