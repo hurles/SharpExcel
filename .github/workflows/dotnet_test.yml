@@ -3,7 +3,7 @@ name: dotnet_create_package
 on:
   workflow_call:
     inputs:
-      project:
+      projectname:
         description: 'The product to run dotnet test on'
         required: true
         type: string

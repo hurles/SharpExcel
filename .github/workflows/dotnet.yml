@@ -1,13 +1,13 @@
-name: nuget-build
+name: SharpExcel build pipeline
 
+env:
+  VERSION_STRING: 0.0.1-alpha${GITHUB_SHA::6}
+  
 on:
   push:
     branches: [ "main" ]
   pull_request:
   workflow_dispatch:
-    
-env:
-    VERSION_STRING: 0.0.1-alpha${GITHUB_SHA::6}
     
 jobs:
   build:
@@ -18,10 +18,10 @@ jobs:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml
     with:
-      project: SharpExcel.Tests
+      projectname: SharpExcel.Tests
   package:
     needs: test
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       version: ${{ env.VERSION_STRING }}
-      project: SharpExcel
+      projectname: SharpExcel
