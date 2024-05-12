@@ -10,7 +10,7 @@ internal class EnumExporter
     /// <param name="propertyMappings">Pre-parsed property data for the current model</param>
     /// <param name="dropdownWorksheet">Reference to the worksheet to add the dropdown data to</param>
     /// <returns></returns>
-    public static Dictionary<Type, string> AddEnumDropdownMappings(PropertyDataCollection propertyMappings, IXLWorksheet dropdownWorksheet)
+    public static Dictionary<Type, string> AddEnumDropdownMappingsToSheet(PropertyDataCollection propertyMappings, IXLWorksheet dropdownWorksheet)
     {
         int dropDownWorkbookColumn = 1;
         var dropdownDataMappings = new Dictionary<Type, string>();

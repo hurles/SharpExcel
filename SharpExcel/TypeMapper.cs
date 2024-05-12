@@ -45,6 +45,7 @@ internal static class TypeMapper
             propertyDataCollection.PropertyMappings.Add(new PropertyData()
             {
                 Name = columnName,
+                NormalizedName = columnName?.ToLowerInvariant(),
                 PropertyInfo = property,
                 Format = attribute?.Format,
                 Conditional = attribute?.IsConditional ?? false,

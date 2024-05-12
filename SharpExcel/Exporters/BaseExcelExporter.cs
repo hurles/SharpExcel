@@ -11,6 +11,7 @@ using SharpExcel.Models.Configuration;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Constants;
+using SharpExcel.Models.Styling.Rules;
 
 namespace SharpExcel.Exporters;
 
@@ -30,22 +31,11 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
     public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null)
     {
         var parsedWorkbook = await ReadWorkbookAsync(sheetName, workbook, cultureInfo);
-
-        foreach (var result in parsedWorkbook.ValidationResults)
-        {
-            var cell = workbook.Worksheet(sheetName).Cell(result.Value.Address.RowNumber, result.Value.Address.ColumnId);
-            var stringBuilder = new StringBuilder();
-            foreach (var item in result.Value.ValidationResults)
-            {
-                stringBuilder.AppendLine(item.ErrorMessage);
-            }
-            cell.Style.ApplyStyle(SharpExcelCellStyleConstants.DefaultErrorStyle);
-            cell.CreateComment().AddText(stringBuilder.ToString());
-        }
-
+        ExporterHelpers.ApplyCellValidation(sheetName, workbook, parsedWorkbook);
         return workbook;
     }
-    
+
+
     /// <inheritdoc />
     public async Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data,
         Func<string, Task<bool>>? optionalColumnFunc = null, CultureInfo? cultureInfo = null)
@@ -56,8 +46,7 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var worksheet = workbook.AddWorksheet(arguments.SheetName);
 
         //add extra hidden sheet where we can put data to show in enum dropdowns
-        var dropdownWorksheet = workbook.AddWorksheet(dropdownDataSheetName);
-        //dropdownWorksheet.Hide();
+        var dropdownWorksheet = workbook.AddWorksheet(dropdownDataSheetName).Hide();
         
         var headerStyle = _options.Value.Styling.DefaultHeaderStyle;
 
@@ -70,14 +59,81 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var rowIndex = 1;
 
         var propertyMappings = TypeMapper.GetModelMetaData<TModel>();
-        
         var optionalColumns = await GetOptionalPropertiesToExport(optionalColumnFunc);
-        
-        var dropdownDataMappings = EnumExporter.AddEnumDropdownMappings(propertyMappings, dropdownWorksheet);
-
+        var dropdownDataMappings = EnumExporter.AddEnumDropdownMappingsToSheet(propertyMappings, dropdownWorksheet);
         var stylingRuleLookup = _options.Value.Styling.ToStylingRuleLookup();
 
         int offsetColumns = 0;
+        WriteHeaderRow(propertyMappings, optionalColumns, offsetColumns, worksheet, rowIndex, headerStyle);
+
+        //go to next row to start inserting data
+        rowIndex++;
+        
+        foreach (var dataItem in data)
+        {
+            var dataOffset = 0;
+            WriteDataRow(propertyMappings, worksheet, rowIndex, dataOffset, stylingRuleLookup, dataItem, dropdownDataMappings, dropdownWorksheet);
+            rowIndex++;
+        }
+        
+        return workbook;
+    }
+
+    private void WriteDataRow(PropertyDataCollection propertyMappings, IXLWorksheet worksheet, int rowIndex, 
+        int dataOffset, 
+        Dictionary<string, List<StylingRule<TModel>>> stylingRuleLookup, TModel dataItem,
+        Dictionary<Type, string> dropdownDataMappings, 
+        IXLWorksheet dropdownWorksheet)
+    {
+        for (var i = 0; i < propertyMappings.PropertyMappings.Count; i++)
+        {
+            var mapping = propertyMappings.PropertyMappings[i];
+            var row = worksheet.Row(rowIndex);
+            var cell = worksheet.Cell(rowIndex, i + 1 - dataOffset /* use +1 because Excel starts at 1 */);
+                
+            var dataStyle = _options.Value.Styling.DefaultDataStyle;
+
+            if (stylingRuleLookup.TryGetValue(mapping.PropertyInfo.Name, out var rules))
+            {
+                foreach (var rule in rules)
+                {
+                    var ruleStyle = rule.EvaluateRules(dataItem);
+                    dataStyle = ruleStyle ?? dataStyle;
+                }
+            }
+
+            if (dataStyle.RowHeight.HasValue && row.Height < dataStyle.RowHeight)
+            {
+                row.Height = dataStyle.RowHeight.Value;
+            }
+
+            var dataValue = mapping.PropertyInfo.GetValue(dataItem);
+                
+            //handle enums
+            if (mapping.PropertyInfo.PropertyType.IsEnum)
+            {
+                EnumExporter.WriteEnumValue(propertyMappings, mapping, dataValue, cell, dropdownDataMappings, dropdownWorksheet);
+            }
+            //handle format
+            else if (mapping.Format != null)
+            {
+                if (dataValue is IFormattable formattable)
+                {
+                    cell.SetValue(formattable.ToString(mapping.Format, CultureInfo.InvariantCulture));
+                }
+            }
+            else
+            {
+                cell.SetValue(XLCellValue.FromObject(dataValue));
+            }
+                
+            cell.Style.ApplyStyle(dataStyle);
+        }
+    }
+
+    private static void WriteHeaderRow(PropertyDataCollection propertyMappings, HashSet<string> optionalColumns, int offsetColumns,
+        IXLWorksheet worksheet, int rowIndex, SharpExcelCellStyle headerStyle)
+    {
         for (var columnIndex = 0; columnIndex < propertyMappings.PropertyMappings.Count; columnIndex++)
         {
             var mapping = propertyMappings.PropertyMappings[columnIndex];
@@ -98,72 +154,9 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
             cell.SetValue(mapping.Name);
         }
-
-        //go to next row to start inserting data
-        rowIndex++;
-        
-        foreach (var dataItem in data)
-        {
-            var dataOffset = 0;
-            for (var i = 0; i < propertyMappings.PropertyMappings.Count; i++)
-            {
-                var mapping = propertyMappings.PropertyMappings[i];
-                var row = worksheet.Row(rowIndex);
-                
-                if (mapping.Conditional && !optionalColumns.Contains(mapping.PropertyInfo.Name))
-                {
-                    dataOffset++;
-                    continue;
-                }
-
-                var cell = worksheet.Cell(rowIndex, i + 1 - dataOffset /* use +1 because Excel starts at 1 */);
-                
-                var dataStyle = _options.Value.Styling.DefaultDataStyle;
-
-                if (stylingRuleLookup.TryGetValue(mapping.PropertyInfo.Name, out var rules))
-                {
-                    foreach (var rule in rules)
-                    {
-                        var ruleStyle = rule.EvaluateRules(dataItem);
-                        dataStyle = ruleStyle ?? dataStyle;
-                    }
-                }
-
-                if (dataStyle.RowHeight.HasValue && row.Height < dataStyle.RowHeight)
-                {
-                    row.Height = dataStyle.RowHeight.Value;
-                }
-
-                var dataValue = mapping.PropertyInfo.GetValue(dataItem);
-                
-                //handle enums
-                if (mapping.PropertyInfo.PropertyType.IsEnum)
-                {
-                    EnumExporter.WriteEnumValue(propertyMappings, mapping, dataValue, cell, dropdownDataMappings, dropdownWorksheet);
-                }
-                //handle format
-                else if (mapping.Format != null)
-                {
-                    if (dataValue is IFormattable formattable)
-                    {
-                        cell.SetValue(formattable.ToString(mapping.Format, CultureInfo.InvariantCulture));
-                    }
-                }
-                else
-                {
-                    cell.SetValue(XLCellValue.FromObject(dataValue));
-                }
-                
-                cell.Style.ApplyStyle(dataStyle);
-            }
-
-            rowIndex++;
-        }
-        
-        return workbook;
     }
 
-    
+
     /// <inheritdoc />
     public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null)
     {
@@ -174,15 +167,40 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
         var usedArea = sheet.RangeUsed();
 
         //find header names based on TModel
-        var headerNames = new HashSet<string>(propertyData.PropertyMappings.Where(x => !string.IsNullOrWhiteSpace(x.Name)).Select(x => x.Name)!);
+        var headerNames = new HashSet<string>(propertyData.PropertyMappings.Where(
+                x => !string.IsNullOrWhiteSpace(x.NormalizedName))
+                .Select(x => x.NormalizedName?.ToLowerInvariant())!
+            );
 
         //find header row
         var headerRowIndex = usedArea
             .Rows(x => x.Cells()
-                .All(c => headerNames.Contains(c.Value.ToString())))
+                .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
             .FirstOrDefault()
             ?.RowNumber() ?? -1;
 
+        var propertiesByColumnName = propertyData.PropertyMappings.ToDictionary(x => x.NormalizedName);
+
+        foreach (var cell in sheet.Row(headerRowIndex).Cells())
+        {
+            if (!cell.TryGetValue(out string cellValue))
+                continue;
+
+            cellValue = cellValue.Trim().ToLowerInvariant();
+            
+            if (!headerNames.Contains(cellValue)) 
+                continue;
+            
+            if (propertiesByColumnName.ContainsKey(cellValue))
+            {
+                propertiesByColumnName[cellValue].ColumnData = new()
+                {
+                    ColumnName = propertiesByColumnName[cellValue].Name ?? string.Empty,
+                    ColumnIndex = cell.Address.ColumnNumber
+                };
+            }
+        }
+        
         var remainingRows = usedArea.Rows(headerRowIndex + 1, usedArea.RowCount()).ToList();
 
         //parse remaining data rows
@@ -192,10 +210,9 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
             Dictionary<ExcelAddress, List<ValidationResult>> validationResults = new();
 
-            for (var columnIndex = 0; columnIndex < propertyData.PropertyMappings.Count; columnIndex++)
+            foreach (var columnData in  propertyData.PropertyMappings.OrderBy(x => x.ColumnData.ColumnIndex))
             {
-                var columnData = propertyData.PropertyMappings[columnIndex];
-                var cell = row.Cell(columnIndex + 1 /* use +1 because Excel starts at 1 */);
+                var cell = row.Cell(columnData.ColumnData.ColumnIndex);
 
                 var excelAddress = new ExcelAddress()
                 {
