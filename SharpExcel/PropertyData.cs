@@ -1,6 +1,4 @@
 using System.Reflection;
-using SharpExcel.Models.Styling;
-using SharpExcel.Models.Styling.Rules;
 
 namespace SharpExcel;
 

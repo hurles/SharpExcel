@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using SharpExcel.Abstraction;
 using SharpExcel.Exporters;
 using SharpExcel.Models.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using SharpExcel.Models.Configuration.Constants;
 
 namespace SharpExcel.DependencyInjection;

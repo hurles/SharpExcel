@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Options;
 using SharpExcel.Tests.Shared;
-using SharpExcel.Models;
 using SharpExcel.Models.Arguments;
-using SharpExcel.Models.Configuration;
 using SharpExcel.Models.Configuration.Constants;
 
 namespace SharpExcel.Tests;
@@ -25,7 +23,7 @@ public class Tests
     public async Task CreateWorkbookTest()
     {
         var workbook = await _exporter.GenerateWorkbookAsync(new SharpExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
-        Assert.IsTrue(workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet") is not null);
+        Assert.That(workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet") is not null);
     }
     
     [Test]

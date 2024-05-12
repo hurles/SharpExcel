@@ -1,16 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Text;
 using ClosedXML.Excel;
 using Microsoft.Extensions.Options;
 using SharpExcel.Abstraction;
 using SharpExcel.Extensions;
-using SharpExcel.Models;
 using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Configuration;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling;
-using SharpExcel.Models.Styling.Constants;
 using SharpExcel.Models.Styling.Rules;
 
 namespace SharpExcel.Exporters;

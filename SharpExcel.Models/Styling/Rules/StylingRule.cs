@@ -1,5 +1,3 @@
-using System.Linq.Expressions;
-
 namespace SharpExcel.Models.Styling.Rules;
 
 public class StylingRule<TModel>

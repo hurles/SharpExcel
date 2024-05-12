@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using SharpExcel;
 using SharpExcel.Exporters;
 using SharpExcel.Models.Configuration;
 

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Rules;
 
@@ -33,6 +32,4 @@ public class ExporterOptions<TExportModel>
         Styling.Rules.Add(stylingRule);
         return stylingRule;
     }
-        
-        
 }
