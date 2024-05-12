@@ -3,10 +3,6 @@ name: dotnet_create_package
 on:
   workflow_call:
     inputs:
-      version:
-        description: 'the version string'
-        required: true
-        type: string
       projectname:
         description: 'name of project'
         required: true
@@ -21,7 +17,7 @@ jobs:
     - name: write output
       run: ls
     - name: create package
-      run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o package_output/${{ inputs.projectname }} -c Release /p:Version=${{ inputs.version }}
+      run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o package_output/${{ inputs.projectname }} -c Release /p:Version=$VERSION_STRING
     - name: write output
       run: |
         cd package_output/${{ inputs.projectname }}
