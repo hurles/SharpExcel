@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: nuget-build
 
 on:
   push:
@@ -12,8 +9,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
+      - name: restore
+        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_restore.yml@main
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_test.yml@main
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        uses: hurles/SharpExcel/blob/main/.github/workflows/dotnet_package.yml@main
