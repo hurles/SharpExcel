@@ -2,6 +2,7 @@ name: dotnet_restore_and_build
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,7 +13,12 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
+    - name: dotnet restore
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore  
+    - name: dotnet build
+      run: dotnet build --artifacts-path dotnet_build --no-restore  
+    - name: create artifact
+    - uses: actions/upload-artifact@v2
+      with:
+         name: build
+         path: dotnet_build
