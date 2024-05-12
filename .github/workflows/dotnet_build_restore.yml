@@ -14,7 +14,9 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: dotnet restore + build
-      run: dotnet build /p:Version=$VERSION_STRING --artifacts-path "dotnet_build"
+      run: |
+        echo $VERSION_STRING
+        dotnet build /p:Version=$VERSION_STRING --artifacts-path "dotnet_build"
     - name: write output
       run: ls
     - name: create artifact
