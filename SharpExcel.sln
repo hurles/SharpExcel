@@ -11,9 +11,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{8A55376E-0255-4B84-860B-CB4F1B5D0159}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
-		.github\workflows\dotnet_restore.yml = .github\workflows\dotnet_restore.yml
 		.github\workflows\dotnet_pack.yml = .github\workflows\dotnet_pack.yml
 		.github\workflows\dotnet_test.yml = .github\workflows\dotnet_test.yml
+		.github\workflows\dotnet_build_restore.yml = .github\workflows\dotnet_build_restore.yml
 	EndProjectSection
 EndProject
 Global

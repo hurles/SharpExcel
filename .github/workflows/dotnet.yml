@@ -8,19 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: restore
-        uses: ./.github/workflows/dotnet_restore.yml
+    uses: ./.github/workflows/dotnet_restore.yml@main
   test:
-    runs-on: ubuntu-latest
     needs: build
-    steps:
-      - name: test
-        uses: ./.github/workflows/dotnet_test.yml
+    uses: ./.github/workflows/dotnet_test.yml@main
   package:
-    runs-on: ubuntu-latest
     needs: test
-    steps:
-      - name: package
-        uses: ./.github/workflows/dotnet_package.yml
+    uses: ./.github/workflows/dotnet_package.yml@main
