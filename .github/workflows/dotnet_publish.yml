@@ -11,16 +11,11 @@ on:
         description: 'name of project'
         required: true
         type: string
-      accesstoken:
-        description: 'access token'
-        required: true
-        type: string
         
 jobs:
   publish:
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ACCESSTOKEN: ${{ secrets.ACTIONS_ACCESSTOKEN }}
+     
     steps:
     - name: get nuget source
       run: dotnet nuget add source --username hurles --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/hurles/index.json"
@@ -34,4 +29,6 @@ jobs:
         ls
     - name: create package
       shell: bash
-      run: dotnet nuget push "package_output/${{ inputs.projectname }}/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key $ACTIONS_ACCESSTOKEN
+      env: 
+        ACTIONS_ACCESSTOKEN: ${{ secrets.ACTIONS_ACCESSTOKEN }}
+      run: dotnet nuget push "package_output/${{ inputs.projectname }}/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key "$ACTIONS_ACCESSTOKEN"
