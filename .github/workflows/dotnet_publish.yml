@@ -28,4 +28,4 @@ jobs:
     - name: write output
       run: ls
     - name: create package
-      run: dotnet nuget push "${{ inputs.projectname }}/bin/Debug/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push "${{ inputs.projectname }}/bin/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key ${{ secrets.GITHUB_TOKEN }}
