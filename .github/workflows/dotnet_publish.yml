@@ -29,4 +29,5 @@ jobs:
       run: |
         ls
     - name: create package
+      shell: bash
       run: dotnet nuget push "package_output/${{ inputs.projectname }}/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key $ACTIONS_ACCESSTOKEN
