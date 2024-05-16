@@ -21,7 +21,7 @@ jobs:
     - name: obtain artifact
       uses: actions/cache/restore@v4
       with:
-        path: dotnet_pack
+        path: package_output
         key: dotnet_pack${{ github.sha }}
     - name: write output
       run: |

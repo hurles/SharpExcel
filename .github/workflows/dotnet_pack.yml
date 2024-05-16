@@ -18,10 +18,10 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
-    - name: write output
-      run: ls
     - name: create package
       run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o package_output/${{ inputs.projectname }} -c Release /p:Version=${{ inputs.version }}
+    - name: write output
+      run: ls
     - name: create artifact
       uses: actions/cache@v4
       with:
