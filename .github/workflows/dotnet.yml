@@ -29,3 +29,4 @@ jobs:
     with:
       projectname: SharpExcel
       version: 0.0.1-alpha${{ github.sha }}
+      accesstoken: ${{ secrets.ACTIONS_ACCESSTOKEN }}

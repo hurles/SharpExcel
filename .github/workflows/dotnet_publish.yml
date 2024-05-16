@@ -11,6 +11,10 @@ on:
         description: 'name of project'
         required: true
         type: string
+      accesstoken:
+        description: 'access token'
+        required: true
+        type: string
         
 jobs:
   publish:
