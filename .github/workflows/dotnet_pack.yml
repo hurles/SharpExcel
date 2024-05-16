@@ -25,5 +25,5 @@ jobs:
     - name: create artifact
       uses: actions/cache@v4
       with:
-        key: dotnet_pack{{ github.sha }}
+        key: dotnet_pack${{ github.sha }}
         path: dotnet_pack
