@@ -17,7 +17,7 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: dotnet_build
-        key: dotnet_build${GITHUB_SHA::6}
+        key: dotnet_build${{ github.sha }}
     - name: write output
       run: ls
     - name: run tests

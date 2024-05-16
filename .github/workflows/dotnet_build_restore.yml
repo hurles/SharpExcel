@@ -24,5 +24,5 @@ jobs:
     - name: create artifact
       uses: actions/cache@v4
       with:
-         key: dotnet_build${GITHUB_SHA::6}
+         key: dotnet_build${{ github.sha }}
          path: dotnet_build

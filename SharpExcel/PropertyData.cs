@@ -27,7 +27,6 @@ internal class PropertyDataCollection
 
     public List<PropertyData> PropertyMappings { get; set; } = new();
     
-    public Dictionary<string, ColumnData> ColumnMappings { get; set; } = new();
 }
 
 internal class ColumnData

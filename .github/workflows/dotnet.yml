@@ -10,7 +10,7 @@ jobs:
   build:
     uses: ./.github/workflows/dotnet_build_restore.yml
     with:
-      version: 0.0.1-alpha${GITHUB_SHA::6}
+      version: 0.0.1-alpha${{ github.sha }}
   test:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml
@@ -21,4 +21,11 @@ jobs:
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       projectname: SharpExcel
-      version: 0.0.1-alpha${GITHUB_SHA::6}
+      version: 0.0.1-alpha${{ github.sha }}
+  publish:
+    if: github.ref == 'refs/heads/master'      
+    needs: package
+    uses: ./.github/workflows/dotnet_publish.yml
+    with:
+      projectname: SharpExcel
+      version: 0.0.1-alpha${{ github.sha }}

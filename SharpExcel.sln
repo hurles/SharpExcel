@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		.github\workflows\dotnet_pack.yml = .github\workflows\dotnet_pack.yml
 		.github\workflows\dotnet_test.yml = .github\workflows\dotnet_test.yml
 		.github\workflows\dotnet_build_restore.yml = .github\workflows\dotnet_build_restore.yml
+		.github\workflows\dotnet_publish.yml = .github\workflows\dotnet_publish.yml
 	EndProjectSection
 EndProject
 Global

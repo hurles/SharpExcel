@@ -13,17 +13,17 @@ on:
         type: string
         
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
     - name: checkout
       uses: actions/checkout@v4
+    - name: obtain artifact
+      uses: actions/cache/restore@v4
+      with:
+        path: dotnet_pack
+        key: dotnet_pack{{ github.sha }}
     - name: write output
       run: ls
     - name: create package
-      run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o package_output/${{ inputs.projectname }} -c Release /p:Version=${{ inputs.version }}
-    - name: create artifact
-      uses: actions/cache@v4
-      with:
-        key: dotnet_pack{{ github.sha }}
-        path: dotnet_pack
+      run: dotnet nuget push "dotnet_pack/bin/Debug/${{ inputs.projectname }}.${{ inputs.version }}.nupkg"  --api-key $ACTIONS_ACCESSTOKEN --source "github"
