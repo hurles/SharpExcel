@@ -16,8 +16,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-    - name: checkout
-      uses: actions/checkout@v4
     - name: get nuget source
       run: dotnet nuget add source --username hurles --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/hurles/index.json"
     - name: obtain artifact
@@ -26,6 +24,7 @@ jobs:
         path: dotnet_pack
         key: dotnet_pack${{ github.sha }}
     - name: write output
-      run: ls
+      run: |
+        ls
     - name: create package
       run: dotnet nuget push "${{ inputs.projectname }}/bin/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key ${{ secrets.GITHUB_TOKEN }}
