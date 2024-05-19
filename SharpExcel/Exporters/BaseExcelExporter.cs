@@ -34,8 +34,7 @@ public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
 
 
     /// <inheritdoc />
-    public async Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data,
-        Func<string, Task<bool>>? optionalColumnFunc = null, CultureInfo? cultureInfo = null)
+    public async Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data, CultureInfo? cultureInfo = null)
     {
         var workbook = new XLWorkbook();
         
