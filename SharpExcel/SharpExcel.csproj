@@ -8,7 +8,7 @@
         <Version>0.0.1-alpha0</Version>
         <Authors>Joost Meulenkamp</Authors>
         <Product>SharpExcel</Product>
-        <PackageLicenseUrl>MIT</PackageLicenseUrl>
+        <PackageLicenseUrl>https://licenses.nuget.org/MIT</PackageLicenseUrl>
         <PackageProjectUrl>https://github.com/hurles/SharpExcel</PackageProjectUrl>
         <PackageTags>Excel import xlsx export sync</PackageTags>
         <Description>SharpExcel is a .NET library to easily export, import, and validate data provided from Excel (.xlsx, .xlsm). It is based on ClosedXml, and provides basic, but overridable formatting using a fluent API</Description>
