@@ -26,6 +26,8 @@ jobs:
     if: github.ref == 'refs/heads/main'      
     needs: package
     uses: ./.github/workflows/dotnet_publish.yml
+    secrets:
+      accesstoken: ${{ secrets.ACTIONS_ACCESSTOKEN }}
     with:
       projectname: SharpExcel
       version: 0.0.1-alpha${{ github.sha }}

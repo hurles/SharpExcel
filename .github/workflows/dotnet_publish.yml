@@ -11,6 +11,9 @@ on:
         description: 'name of project'
         required: true
         type: string
+    secrets:
+      accesstoken:
+        required: true
         
 jobs:
   publish:
@@ -30,5 +33,5 @@ jobs:
     - name: create package
       shell: bash
       env: 
-        ACTIONS_ACCESSTOKEN: ${{ secrets.ACTIONS_ACCESSTOKEN }}
+        ACTIONS_ACCESSTOKEN: ${{ secrets.accesstoken }}
       run: dotnet nuget push "package_output/${{ inputs.projectname }}/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key "$ACTIONS_ACCESSTOKEN"
