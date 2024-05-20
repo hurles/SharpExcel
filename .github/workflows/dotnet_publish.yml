@@ -23,7 +23,7 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: package_output
-        key: dotnet_pack${{ github.sha }}
+        key: dotnet_pack${{ inputs.projectname }}${{ inputs.version }}
     - name: write output
       run: |
         ls
