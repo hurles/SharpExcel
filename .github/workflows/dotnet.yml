@@ -13,7 +13,7 @@ jobs:
       output: ${{ steps.date.outputs.date }}
     steps:
       - id: print
-        run: echo date +%s
+        run: date +%s
       - id: date
         run: echo "version=$(date +%s)" >> $GITHUB_OUTPUT
   build:
