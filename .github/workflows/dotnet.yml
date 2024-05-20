@@ -19,9 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: get-version
     steps:
-      - id: print
+      - id: print-version
+        env: 
+         VERSION: 0.0.1-alpha${{ needs.get-version.outputs.version }}
         shell: bash
-        run: ${{ needs.get-version.outputs.version }}
+        run: echo $VERSION
   build:
     needs: get-version
     uses: ./.github/workflows/dotnet_build_restore.yml
