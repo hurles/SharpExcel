@@ -34,10 +34,10 @@ jobs:
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       projectname: SharpExcel.Models
-      version: 0.0.1-alpha${{ github.sha }}
-  publish:
+      version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
+  publish-main:
     if: github.ref == 'refs/heads/main'      
-    needs: package
+    needs: package-main
     uses: ./.github/workflows/dotnet_publish.yml
     secrets: inherit
     with:
@@ -45,7 +45,7 @@ jobs:
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
   publish-models:
     if: github.ref == 'refs/heads/main'
-    needs: package
+    needs: package-models
     uses: ./.github/workflows/dotnet_publish.yml
     secrets: inherit
     with:
