@@ -29,11 +29,12 @@ public class Tests
     [Test]
     public async Task ReadWorkbookTest()
     {
+        var args = new SharpExcelArguments() { SheetName = "TestSheet" };
         //create test workbook
-        var workbook = await _exporter.GenerateWorkbookAsync( new SharpExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
+        var workbook = await _exporter.GenerateWorkbookAsync( args, CreateTestData());
 
         //read workbook
-        var output = await _exporter.ReadWorkbookAsync("TestSheet", workbook);
+        var output = await _exporter.ReadWorkbookAsync(args, workbook);
         
         Assert.Multiple(() =>
         {

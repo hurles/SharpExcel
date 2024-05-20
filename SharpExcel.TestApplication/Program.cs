@@ -1,4 +1,5 @@
-﻿using SharpExcel.Models.Arguments;
+﻿using System.Globalization;
+using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling.Colorization;
 using SharpExcel.TestApplication.TestData;
@@ -41,7 +42,8 @@ async Task RunApp(IServiceProvider services)
     #region write-workbook
     var excelArguments = new SharpExcelArguments()
     {
-        SheetName = "Budgets"
+        SheetName = "Budgets",
+        CultureInfo = CultureInfo.CurrentCulture
     };
     
     using var workbook = await exportService.GenerateWorkbookAsync(excelArguments, TestDataProvider.GetTestData());
@@ -49,12 +51,12 @@ async Task RunApp(IServiceProvider services)
     #endregion
     
     #region validate-workbook
-    using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync("Budgets", workbook);
+    using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync(excelArguments, workbook);
     errorCheckedWorkbook.SaveAs(validationExportPath);
     #endregion
 
     #region read-workbook
-    var importedWorkbook = await exportService.ReadWorkbookAsync("Budgets", workbook);
+    var importedWorkbook = await exportService.ReadWorkbookAsync(excelArguments, workbook);
     #endregion
 
     #region write_output

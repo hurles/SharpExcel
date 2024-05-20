@@ -7,44 +7,44 @@ internal class EnumExporter
     /// <summary>
     /// Fill a hidden worksheet with data from which to fill enum dropdowns with
     /// </summary>
-    /// <param name="propertyMappings">Pre-parsed property data for the current model</param>
-    /// <param name="dropdownWorksheet">Reference to the worksheet to add the dropdown data to</param>
+    /// <param name="instance">instance of this run</param>
     /// <returns></returns>
-    public static Dictionary<Type, string> AddEnumDropdownMappingsToSheet(PropertyDataCollection propertyMappings, IXLWorksheet dropdownWorksheet)
+    public static Dictionary<Type, string> AddEnumDropdownMappingsToSheet<TModel>(SharpExcelWriterInstanceData<TModel> instance)
+        where TModel : class
     {
         int dropDownWorkbookColumn = 1;
         var dropdownDataMappings = new Dictionary<Type, string>();
-        foreach (var enumMapping in propertyMappings.EnumMappings)
+        foreach (var enumMapping in instance.Properties.EnumMappings)
         {
             var columnLength = 0;
             for (int i = 0; i < enumMapping.Value.Count; i++)
             {
-                var cell = dropdownWorksheet.Row(i + 1).Cell(dropDownWorkbookColumn);
+                var cell = instance.DropdownSourceWorksheet.Row(i + 1).Cell(dropDownWorkbookColumn);
                 cell.SetValue(enumMapping.Value[i].VisualName);
                 columnLength++;
             }
 
-            var letter = dropdownWorksheet.Column(dropDownWorkbookColumn).ColumnLetter();
+            var letter = instance.DropdownSourceWorksheet.Column(dropDownWorkbookColumn).ColumnLetter();
             dropdownDataMappings.Add(enumMapping.Key, $"{letter}{1}:{letter}{columnLength}");
             dropDownWorkbookColumn++;
         }
 
         return dropdownDataMappings;
     }
-    
+
     /// <summary>
     /// Write enum value into designated cell and add a dropdown with all possible values
     /// </summary>
-    /// <param name="propertyMappings"></param>
-    /// <param name="mapping"></param>
+    /// <param name="instance"></param>
+    /// <param name="type"></param>
     /// <param name="dataValue"></param>
     /// <param name="cell"></param>
     /// <param name="dropdownDataMappings"></param>
-    /// <param name="dropdownWorksheet"></param>
-    public static void WriteEnumValue(PropertyDataCollection propertyMappings, PropertyData mapping, object dataValue,
-        IXLCell cell, Dictionary<Type, string> dropdownDataMappings, IXLWorksheet dropdownWorksheet)
+    public static void WriteEnumValue<TModel>(SharpExcelWriterInstanceData<TModel> instance, Type type, object dataValue,
+        IXLCell cell, Dictionary<Type, string> dropdownDataMappings)
+    where TModel : class
     {
-        if (propertyMappings.EnumMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var enumValues))
+        if (instance.Properties.EnumMappings.TryGetValue(type, out var enumValues))
         {
             var text = dataValue.ToString().Trim().ToLowerInvariant();
             if (!string.IsNullOrWhiteSpace(text))
@@ -58,9 +58,9 @@ internal class EnumExporter
                 }
             }
                         
-            if (dropdownDataMappings.TryGetValue(mapping.PropertyInfo.PropertyType, out var range))
+            if (dropdownDataMappings.TryGetValue(type, out var range))
             {
-                cell.CreateDataValidation().List(dropdownWorksheet.Range(range), true);
+                cell.CreateDataValidation().List(instance.DropdownSourceWorksheet.Range(range), true);
             }
         }
     }

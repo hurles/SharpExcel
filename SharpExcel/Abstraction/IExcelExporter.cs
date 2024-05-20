@@ -13,26 +13,23 @@ public interface IExcelExporter<TModel>
     /// </summary>
     /// <param name="arguments">Collection of arguments</param>
     /// <param name="data">The data to generate the workbook from</param>
-    /// <param name="cultureInfo">Culture used to generate workbook</param>
     /// <returns></returns>
-    public Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data, CultureInfo? cultureInfo = null);
+    public Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data);
 
     /// <summary>
     /// Reads a workbook to convert it into the given model
     /// </summary>
-    /// <param name="sheetName">name of the sheet to read from</param>
+    /// <param name="arguments">Collection of arguments</param>
     /// <param name="workbook"></param>
-    /// <param name="cultureInfo">culture used, defaults to CurrentCulture if null</param>
     /// <typeparam name="TModel"></typeparam>
     /// <returns></returns>
-    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null);
+    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(SharpExcelArguments arguments, XLWorkbook workbook);
 
     /// <summary>
     /// Reads, then returns the supplied workbook, but highlights cells containing invalid data, using standard System.ComponentModel.DataAnnotations validation on the model
     /// </summary>
-    /// <param name="sheetName">Name of the sheet to analyze</param>
+    /// <param name="arguments">Collection of arguments</param>
     /// <param name="workbook">The workbook</param>
-    /// <param name="cultureInfo">Optional culture used for reading and writing</param>
     /// <returns>The highlighted workbook</returns>
-    public Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(string sheetName, XLWorkbook workbook, CultureInfo? cultureInfo = null);
+    public Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(SharpExcelArguments arguments, XLWorkbook workbook);
 }
