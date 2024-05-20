@@ -10,9 +10,10 @@ jobs:
   get-version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.date.outputs.date }}
+      version: ${{ steps.get-version.outputs.version }}
     steps:
-      - id: date
+      - id: get-version
+        shell: bash
         run: echo "version=$(date +%s)" >> $GITHUB_OUTPUT
   build:
     needs: get-version
