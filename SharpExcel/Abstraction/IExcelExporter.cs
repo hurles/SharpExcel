@@ -8,12 +8,11 @@ namespace SharpExcel.Abstraction;
 public interface IExcelExporter<TModel>
     where TModel : class, new()
 {
-
     /// <summary>
     /// Generates a workbook based on the provided data
     /// </summary>
     /// <param name="arguments">Collection of arguments</param>
-    /// <param name="optionalColumnFunc">Functions that returns a boolean based on Property name of TModel (not column name), indicating whether or not to write the specified property based on a condition</param>
+    /// <param name="data">The data to generate the workbook from</param>
     /// <param name="cultureInfo">Culture used to generate workbook</param>
     /// <returns></returns>
     public Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data, CultureInfo? cultureInfo = null);

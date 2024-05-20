@@ -11,7 +11,7 @@ using SharpExcel.Models.Styling.Constants;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddDefaultExporter<TestExportModel>(options =>
+builder.Services.AddExporter<TestExportModel>(options =>
 {
     options.WithDataStyle(SharpExcelCellStyleConstants.DefaultDataStyle)
         .WithHeaderStyle(SharpExcelCellStyleConstants.DefaultHeaderStyle)
