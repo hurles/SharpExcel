@@ -5,22 +5,38 @@ on:
     branches: [ "main" ]
   pull_request:
   workflow_dispatch:
-    
+
+env:
+  run: echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+
 jobs:
+  get-version:
+    runs-on: ubuntu-latest
+    outputs: 
+      output: ${{ steps.date.outputs.date }}
+    steps:
+      - id: date
+        run: echo "version=$(date +%s)" >> $GITHUB_OUTPUT
   build:
     uses: ./.github/workflows/dotnet_build_restore.yml
     with:
-      version: 0.0.1-alpha${{ github.sha }}
+      version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
   test:
     needs: build
     uses: ./.github/workflows/dotnet_test.yml
     with:
       projectname: SharpExcel.Tests
-  package:
+  package-main:
     needs: test
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       projectname: SharpExcel
+      version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
+  package-models:
+    needs: test
+    uses: ./.github/workflows/dotnet_pack.yml
+    with:
+      projectname: SharpExcel.Models
       version: 0.0.1-alpha${{ github.sha }}
   publish:
     if: github.ref == 'refs/heads/main'      
@@ -29,4 +45,12 @@ jobs:
     secrets: inherit
     with:
       projectname: SharpExcel
-      version: 0.0.1-alpha${{ github.sha }}
+      version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
+  publish-models:
+    if: github.ref == 'refs/heads/main'
+    needs: package
+    uses: ./.github/workflows/dotnet_publish.yml
+    secrets: inherit
+    with:
+      projectname: SharpExcel.Models
+      version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
