@@ -15,7 +15,7 @@ jobs:
       - id: print
         run: date +%s >> $GITHUB_OUTPUT
       - id: date
-        run: echo "version=$(date +%s)" >> $GITHUB_OUTPUT
+        run: echo "version=\"$(date +%s)\"" >> $GITHUB_OUTPUT
   build:
     needs: get-version
     uses: ./.github/workflows/dotnet_build_restore.yml
