@@ -15,40 +15,31 @@ jobs:
       - id: get-version
         shell: bash
         run: echo "version=$(date +%s)" >> $GITHUB_OUTPUT
-  print-version:
-    runs-on: ubuntu-latest
-    needs: get-version
-    steps:
-      - id: print-version
-        env: 
-         VERSION: 0.0.1-alpha${{ needs.get-version.outputs.version }}
-        shell: bash
-        run: echo $VERSION
   build:
     needs: get-version
     uses: ./.github/workflows/dotnet_build_restore.yml
     with:
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
   test:
-    needs: build
+    needs: [ build, get-version ]
     uses: ./.github/workflows/dotnet_test.yml
     with:
       projectname: SharpExcel.Tests
   package-main:
-    needs: test
+    needs: [ test, get-version ]
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       projectname: SharpExcel
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
   package-models:
-    needs: test
+    needs: [test, get-version ]
     uses: ./.github/workflows/dotnet_pack.yml
     with:
       projectname: SharpExcel.Models
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
   publish-main:
     if: github.ref == 'refs/heads/main'      
-    needs: package-main
+    needs: [ package-main, get-version ]
     uses: ./.github/workflows/dotnet_publish.yml
     secrets: inherit
     with:
@@ -56,7 +47,7 @@ jobs:
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
   publish-models:
     if: github.ref == 'refs/heads/main'
-    needs: package-models
+    needs: [ package-models, get-version ]
     uses: ./.github/workflows/dotnet_publish.yml
     secrets: inherit
     with:
