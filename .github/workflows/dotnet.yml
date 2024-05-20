@@ -13,10 +13,11 @@ jobs:
       output: ${{ steps.date.outputs.date }}
     steps:
       - id: print
-        run: date +%s
+        run: date +%s >> $GITHUB_OUTPUT
       - id: date
         run: echo "version=$(date +%s)" >> $GITHUB_OUTPUT
   build:
+    needs: get-version
     uses: ./.github/workflows/dotnet_build_restore.yml
     with:
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
