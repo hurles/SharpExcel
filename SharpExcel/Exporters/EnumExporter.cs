@@ -2,6 +2,9 @@ using ClosedXML.Excel;
 
 namespace SharpExcel.Exporters;
 
+/// <summary>
+/// Several helper methods to write enum values into dropdowns
+/// </summary>
 internal class EnumExporter
 {
     /// <summary>

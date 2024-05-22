@@ -1,10 +1,13 @@
-﻿using System.Globalization;
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
 using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Results;
 
 namespace SharpExcel.Abstraction;
 
+/// <summary>
+/// Main interface for excel exports and imports
+/// </summary>
+/// <typeparam name="TModel"></typeparam>
 public interface IExcelExporter<TModel>
     where TModel : class, new()
 {

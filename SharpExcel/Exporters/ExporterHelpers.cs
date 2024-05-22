@@ -1,14 +1,17 @@
 using System.Globalization;
 using System.Text;
 using ClosedXML.Excel;
+using SharpExcel.Exporters.Helpers;
 using SharpExcel.Extensions;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Constants;
-using SharpExcel.Models.Styling.Rules;
 
 namespace SharpExcel.Exporters;
 
+/// <summary>
+/// Helper methods for exporters
+/// </summary>
 internal static class ExporterHelpers
 {
     /// <summary>

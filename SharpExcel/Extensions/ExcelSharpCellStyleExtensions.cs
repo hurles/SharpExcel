@@ -5,8 +5,16 @@ using SharpExcel.Models.Styling.Text;
 
 namespace SharpExcel.Extensions;
 
+/// <summary>
+/// Extension methods for SharpExcelCellStyle
+/// </summary>
 internal static class SharpExcelCellStyleExtensions
 {
+    /// <summary>
+    /// Apply SharpExcelCellStyle to IXLStyle
+    /// </summary>
+    /// <param name="excelStyle"></param>
+    /// <param name="cellStyle"></param>
     internal static void ApplyStyle(this IXLStyle excelStyle, SharpExcelCellStyle cellStyle)
     {
         if (cellStyle.BackgroundColor.HasValue)
@@ -61,6 +69,11 @@ internal static class SharpExcelCellStyleExtensions
         }
     }
 
+    /// <summary>
+    /// Lookup for border styles
+    /// </summary>
+    /// <param name="borderStyle"></param>
+    /// <returns></returns>
     private static XLBorderStyleValues GetBorderStyleValue(BorderStyle borderStyle)
     {
         switch (borderStyle)

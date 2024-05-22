@@ -3,8 +3,17 @@ using SharpExcel.Models.Styling.Rules;
 
 namespace SharpExcel.Extensions;
 
+/// <summary>
+/// Extension methods for StylingCollection
+/// </summary>
 internal static class StylingCollectionExtensions
 {
+    /// <summary>
+    /// Creates lookup for styling rules, used internally to speed up looking up styling rules
+    /// </summary>
+    /// <param name="collection">the collection to create a lookup from</param>
+    /// <typeparam name="TExportModel">Model type</typeparam>
+    /// <returns></returns>
     public static Dictionary<string, List<StylingRule<TExportModel>>> ToStylingRuleLookup<TExportModel>(this StylingCollection<TExportModel> collection)
         where TExportModel : class
     {

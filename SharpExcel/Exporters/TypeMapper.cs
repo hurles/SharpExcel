@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using SharpExcel.Exporters.Helpers;
 using SharpExcel.Models.Attributes;
 
-namespace SharpExcel;
+namespace SharpExcel.Exporters;
 
+/// <summary>
+/// Contains methods to read and map supplied models
+/// </summary>
 internal static class TypeMapper
 {
     /// <summary>
@@ -55,6 +59,11 @@ internal static class TypeMapper
         return propertyDataCollection;
     }
 
+    /// <summary>
+    /// Maps all enum values and their display values
+    /// </summary>
+    /// <param name="propertyType"></param>
+    /// <returns></returns>
     private static List<EnumData> GetEnumMappings(Type propertyType)
     {
         if (!propertyType.IsEnum)

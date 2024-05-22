@@ -53,7 +53,7 @@ public struct SharpExcelCellStyle
     /// <summary>
     /// Border styling
     /// </summary>
-    public BorderCollection Borders { get; set; } = BorderCollection.DataDefault;
+    public BorderCollection? Borders { get; set; } = BorderCollection.DataDefault;
     
     public SharpExcelCellStyle WithTextColor(SharpExcelColor color)
     {

@@ -10,7 +10,7 @@ using SharpExcel.Abstraction;
 using SharpExcel.DependencyInjection;
 using SharpExcel.Models.Styling.Constants;
 
-HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(null);
 
 builder.Services.AddExporter<TestExportModel>(options =>
 {
@@ -21,12 +21,13 @@ builder.Services.AddExporter<TestExportModel>(options =>
                 .WithTextColor(new SharpExcelColor(255, 100, 100))
                 .WithBackgroundColor(new SharpExcelColor(255, 100, 100, 70))
         )
-        .AddStylingRule()
-            .ForProperty(nameof(TestExportModel.Budget))
-            .WithCondition(x => x.Budget < 0)
-        .WhenTrue(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(255,100,100)))
-        .WhenFalse(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(80,160,80)));
-
+        .WithStylingRule(rule =>
+        {
+            rule.ForProperty(nameof(TestExportModel.Budget));
+            rule.WithCondition(x => x.Budget < 0);
+            rule.WhenTrue(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(255, 100, 100)));
+            rule.WhenFalse(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(80, 160, 80)));
+        });
 });
 
 using IHost host = builder.Build();
@@ -83,9 +84,3 @@ async Task RunApp(IServiceProvider services)
     }
     #endregion
 }
-
-
-
-//write read rows
-
-
