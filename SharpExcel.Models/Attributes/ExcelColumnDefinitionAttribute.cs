@@ -6,7 +6,7 @@ namespace SharpExcel.Models.Attributes;
 /// <param name="columnName">Name for the column in Excel</param>
 /// <param name="width">column width to use (-1 means no value (default))</param>
 /// <param name="format">optional format string (this will convert the value into a string in Excel)</param>
-public class ExcelColumnDefinitionAttribute(
+public class SharpExcelColumnDefinitionAttribute(
     string columnName,
     int width = -1,
     string? format = null)

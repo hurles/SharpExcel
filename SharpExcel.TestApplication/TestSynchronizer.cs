@@ -5,9 +5,9 @@ using SharpExcel.TestApplication.TestData;
 
 namespace SharpExcel.TestApplication;
 
-public class TestExporter : BaseExcelExporter<TestExportModel>
+public class TestSynchronizer : BaseSharpExcelSynchronizer<TestExportModel>
 {
-    public TestExporter(IOptions<ExporterOptions<TestExportModel>> options) : base(options)
+    public TestSynchronizer(IOptions<ExporterOptions<TestExportModel>> options) : base(options)
     {
     }
 }

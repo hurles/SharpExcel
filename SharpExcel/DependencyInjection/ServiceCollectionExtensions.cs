@@ -17,11 +17,11 @@ public static class SharpExcelServiceCollectionExtensions
     /// <param name="services">the ServiceCollection</param>
     /// <param name="options">the options to configure this SharpExcel exporter with. Default options are used when null</param>
     /// <typeparam name="TExportModel"></typeparam>
-    public static void AddExporter<TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
+    public static void AddSynchronizer<TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
         where TExportModel : class, new()
     {
         services.Configure(options ?? (_ => ExporterOptionsConstants.GetDefaultOptions<TExportModel>()));
-        services.AddTransient<IExcelExporter<TExportModel>, BaseExcelExporter<TExportModel>>();
+        services.AddTransient<ISharpExcelSynchronizer<TExportModel>, BaseSharpExcelSynchronizer<TExportModel>>();
     }
     
     /// <summary>
@@ -31,12 +31,12 @@ public static class SharpExcelServiceCollectionExtensions
     /// <param name="options">the options to configure this SharpExcel exporter with. Default options are used when null</param>
     /// <typeparam name="TExporter">The type of the exporter. Must be inherited from BaseExcelExporter </typeparam>
     /// <typeparam name="TExportModel">any class to use as data model</typeparam>
-    public static void AddExporter<TExporter, TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
+    public static void AddSynchronizer<TExporter, TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
         where TExportModel : class, new()
-        where TExporter : BaseExcelExporter<TExportModel>
+        where TExporter : BaseSharpExcelSynchronizer<TExportModel>
     {
         
         services.Configure(options ?? (_ => ExporterOptionsConstants.GetDefaultOptions<TExportModel>()));
-        services.AddTransient<IExcelExporter<TExportModel>, TExporter>();
+        services.AddTransient<ISharpExcelSynchronizer<TExportModel>, TExporter>();
     }
 }

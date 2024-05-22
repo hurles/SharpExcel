@@ -13,12 +13,12 @@ namespace SharpExcel.Exporters;
 /// <summary>
 /// Base class for creating excel workbooks
 /// </summary>
-public class BaseExcelExporter<TModel> : IExcelExporter<TModel>
+public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel>
     where TModel : class, new()
 {
     private readonly IOptions<ExporterOptions<TModel>> _options;
 
-    public BaseExcelExporter(IOptions<ExporterOptions<TModel>> options)
+    public BaseSharpExcelSynchronizer(IOptions<ExporterOptions<TModel>> options)
     {
         _options = options;
     }

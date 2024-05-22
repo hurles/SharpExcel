@@ -7,7 +7,7 @@ namespace SharpExcel.Tests;
 
 public class Tests
 {
-    private TestExporter _exporter = null!;
+    private TestSynchronizer _synchronizer = null!;
 
 
     [SetUp]
@@ -15,14 +15,14 @@ public class Tests
     {
         var options = Options.Create(ExporterOptionsConstants.GetDefaultOptions<TestModel>());
 
-        _exporter = new TestExporter(options);
+        _synchronizer = new TestSynchronizer(options);
 
     }
 
     [Test]
     public async Task CreateWorkbookTest()
     {
-        var workbook = await _exporter.GenerateWorkbookAsync(new SharpExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
+        var workbook = await _synchronizer.GenerateWorkbookAsync(new SharpExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
         Assert.That(workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet") is not null);
     }
     
@@ -31,10 +31,10 @@ public class Tests
     {
         var args = new SharpExcelArguments() { SheetName = "TestSheet" };
         //create test workbook
-        var workbook = await _exporter.GenerateWorkbookAsync( args, CreateTestData());
+        var workbook = await _synchronizer.GenerateWorkbookAsync( args, CreateTestData());
 
         //read workbook
-        var output = await _exporter.ReadWorkbookAsync(args, workbook);
+        var output = await _synchronizer.ReadWorkbookAsync(args, workbook);
         
         Assert.Multiple(() =>
         {

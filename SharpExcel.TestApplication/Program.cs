@@ -8,20 +8,25 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SharpExcel.Abstraction;
 using SharpExcel.DependencyInjection;
+using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Constants;
+using SharpExcel.Models.Styling.Text;
 
 HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(null);
 
-builder.Services.AddExporter<TestExportModel>(options =>
+builder.Services.AddSynchronizer<TestExportModel>(options =>
 {
-    options.WithDataStyle(SharpExcelCellStyleConstants.DefaultDataStyle)
-        .WithHeaderStyle(SharpExcelCellStyleConstants.DefaultHeaderStyle)
-        .WithErrorStyle(
+    options.WithDataStyle(SharpExcelCellStyleConstants.DefaultDataStyle);
+    options.WithHeaderStyle(new SharpExcelCellStyle()
+        .WithTextStyle(TextStyle.Bold)
+        .WithFontSize(18.0));
+    
+    options.WithErrorStyle(
             SharpExcelCellStyleConstants.DefaultDataStyle
                 .WithTextColor(new SharpExcelColor(255, 100, 100))
                 .WithBackgroundColor(new SharpExcelColor(255, 100, 100, 70))
-        )
-        .WithStylingRule(rule =>
+        );
+    options.WithStylingRule(rule =>
         {
             rule.ForProperty(nameof(TestExportModel.Budget));
             rule.WithCondition(x => x.Budget < 0);
@@ -38,7 +43,7 @@ async Task RunApp(IServiceProvider services)
 {
     var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
     var validationExportPath = $"./OutputFolder/ErrorChecked-{Guid.NewGuid()}.xlsx";
-    var exportService = services.GetRequiredService<IExcelExporter<TestExportModel>>();
+    var exportService = services.GetRequiredService<ISharpExcelSynchronizer<TestExportModel>>();
 
     #region write-workbook
     var excelArguments = new SharpExcelArguments()

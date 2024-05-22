@@ -8,7 +8,7 @@ namespace SharpExcel.Abstraction;
 /// Main interface for excel exports and imports
 /// </summary>
 /// <typeparam name="TModel"></typeparam>
-public interface IExcelExporter<TModel>
+public interface ISharpExcelSynchronizer<TModel>
     where TModel : class, new()
 {
     /// <summary>

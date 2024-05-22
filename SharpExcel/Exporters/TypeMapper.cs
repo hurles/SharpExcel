@@ -25,7 +25,7 @@ internal static class TypeMapper
 
             var property = dataType.GetProperties()[columnIndex];
 
-            var attribute = property.GetCustomAttribute<ExcelColumnDefinitionAttribute>();
+            var attribute = property.GetCustomAttribute<SharpExcelColumnDefinitionAttribute>();
 
             if (attribute is null)
             {
