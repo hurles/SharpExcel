@@ -18,11 +18,8 @@ jobs:
       with:
         path: package_output
         key: dotnet_pack${{ inputs.version }}
-    - name: write output
-      run: |
-        ls
     - name: create package
       shell: bash
       env: 
         ACTIONS_ACCESSTOKEN: ${{ secrets.NUGET_API_KEY }}
-      run: dotnet nuget push "package_output/**/*.nupkg" --api-key "$ACTIONS_ACCESSTOKEN" --source https://api.nuget.org/v3/index.json      
+      run: dotnet nuget push "package_output/**/*.nupkg" --api-key "$ACTIONS_ACCESSTOKEN" --source https://api.nuget.org/v3/index.json -v detailed
