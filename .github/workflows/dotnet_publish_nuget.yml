@@ -1,0 +1,32 @@
+name: dotnet_create_package_nuget
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'the version string'
+        required: true
+        type: string
+      projectname:
+        description: 'name of project'
+        required: true
+        type: string
+        
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+     
+    steps:
+    - name: obtain artifact
+      uses: actions/cache/restore@v4
+      with:
+        path: package_output
+        key: dotnet_pack${{ inputs.projectname }}${{ inputs.version }}
+    - name: write output
+      run: |
+        ls
+    - name: create package
+      shell: bash
+      env: 
+        ACTIONS_ACCESSTOKEN: ${{ secrets.NUGET_API_KEY }}
+      run: dotnet nuget push "package_output/${{ inputs.projectname }}/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" --api-key "$ACTIONS_ACCESSTOKEN" --source https://api.nuget.org/v3/index.json      

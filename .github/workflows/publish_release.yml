@@ -1,0 +1,44 @@
+name: SharpExcel build pipeline
+  
+on:
+  release:
+    types: [ released, prereleased ]
+
+jobs:
+  build:
+    uses: ./.github/workflows/dotnet_build_restore.yml
+    with:
+      version: ${{ github.event.release.tag_name }}
+  test:
+    needs: [ build ]
+    uses: ./.github/workflows/dotnet_test.yml
+    with:
+      projectname: SharpExcel.Tests
+  package-main:
+    needs: [ test ]
+    uses: ./.github/workflows/dotnet_pack.yml
+    with:
+      projectname: SharpExcel
+      version: ${{ github.event.release.tag_name }}
+  package-models:
+    needs: [test ]
+    uses: ./.github/workflows/dotnet_pack.yml
+    with:
+      projectname: SharpExcel.Models
+      version: ${{ github.event.release.tag_name }}
+  publish-main:
+    if: github.ref == 'refs/heads/main'      
+    needs: [ package-main ]
+    uses: ./.github/workflows/dotnet_publish.yml
+    secrets: inherit
+    with:
+      projectname: SharpExcel
+      version: ${{ github.event.release.tag_name }}
+  publish-models:
+    if: github.ref == 'refs/heads/main'
+    needs: [ package-models ]
+    uses: ./.github/workflows/dotnet_publish_nuget.yml
+    secrets: inherit
+    with:
+      projectname: SharpExcel.Models
+      version: ${{ github.event.release.tag_name }}
