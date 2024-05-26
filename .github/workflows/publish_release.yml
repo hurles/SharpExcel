@@ -27,7 +27,6 @@ jobs:
       projectname: SharpExcel.Models
       version: ${{ github.event.release.tag_name }}
   publish-main:
-    if: github.ref == 'refs/heads/main'      
     needs: [ package-main ]
     uses: ./.github/workflows/dotnet_publish.yml
     secrets: inherit
@@ -35,7 +34,6 @@ jobs:
       projectname: SharpExcel
       version: ${{ github.event.release.tag_name }}
   publish-models:
-    if: github.ref == 'refs/heads/main'
     needs: [ package-models ]
     uses: ./.github/workflows/dotnet_publish_nuget.yml
     secrets: inherit
