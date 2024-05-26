@@ -25,31 +25,15 @@ jobs:
     uses: ./.github/workflows/dotnet_test.yml
     with:
       projectname: SharpExcel.Tests
-  package-main:
+  package:
     needs: [ test, get-version ]
     uses: ./.github/workflows/dotnet_pack.yml
     with:
-      projectname: SharpExcel
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
-  package-models:
-    needs: [test, get-version ]
-    uses: ./.github/workflows/dotnet_pack.yml
-    with:
-      projectname: SharpExcel.Models
-      version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
-  publish-main:
+  publish:
     if: github.ref == 'refs/heads/main'      
     needs: [ package-main, get-version ]
     uses: ./.github/workflows/dotnet_publish.yml
     secrets: inherit
     with:
-      projectname: SharpExcel
-      version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
-  publish-models:
-    if: github.ref == 'refs/heads/main'
-    needs: [ package-models, get-version ]
-    uses: ./.github/workflows/dotnet_publish.yml
-    secrets: inherit
-    with:
-      projectname: SharpExcel.Models
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}

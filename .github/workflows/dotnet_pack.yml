@@ -7,10 +7,6 @@ on:
         description: 'the version string'
         required: true
         type: string
-      projectname:
-        description: 'name of project'
-        required: true
-        type: string
         
 jobs:
   build:
@@ -18,12 +14,14 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
+    - name: create models package
+      run: dotnet pack SharpExcel.Models/SharpExcel.Models.csproj -o package_output/SharpExcel.Models -c Release /p:Version=${{ inputs.version }}
     - name: create package
-      run: dotnet pack ${{ inputs.projectname }}/${{ inputs.projectname }}.csproj -o package_output/${{ inputs.projectname }} -c Release /p:Version=${{ inputs.version }}
+      run: dotnet pack SharpExcel/SharpExcel.csproj -o package_output/SharpExcel -c Release /p:Version=${{ inputs.version }}
     - name: write output
       run: ls
     - name: create artifact
       uses: actions/cache@v4
       with:
-        key: dotnet_pack${{ inputs.projectname }}${{ inputs.version }}
+        key: dotnet_pack${{ inputs.version }}
         path: package_output

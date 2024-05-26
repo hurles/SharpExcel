@@ -7,10 +7,6 @@ on:
         description: 'the version string'
         required: true
         type: string
-      projectname:
-        description: 'name of project'
-        required: true
-        type: string
         
 jobs:
   publish:
@@ -23,7 +19,7 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: package_output
-        key: dotnet_pack${{ inputs.projectname }}${{ inputs.version }}
+        key: dotnet_pack${{ inputs.version }}
     - name: write output
       run: |
         ls
@@ -31,4 +27,4 @@ jobs:
       shell: bash
       env: 
         ACTIONS_ACCESSTOKEN: ${{ secrets.ACTIONS_ACCESSTOKEN }}
-      run: dotnet nuget push "package_output/${{ inputs.projectname }}/${{ inputs.projectname }}.${{ inputs.version }}.nupkg" -s "github" --api-key "$ACTIONS_ACCESSTOKEN"
+      run: dotnet nuget push "package_output/**/*.nupkg" -s "github" --api-key "$ACTIONS_ACCESSTOKEN"
