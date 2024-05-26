@@ -32,7 +32,7 @@ jobs:
       version: 0.0.1-alpha${{ needs.get-version.outputs.version }}
   publish:
     if: github.ref == 'refs/heads/main'      
-    needs: [ package-main, get-version ]
+    needs: [ package, get-version ]
     uses: ./.github/workflows/dotnet_publish.yml
     secrets: inherit
     with:

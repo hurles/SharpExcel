@@ -20,7 +20,7 @@ jobs:
     with:
       version: ${{ github.event.release.tag_name }}
   publish:
-    needs: [ package-main ]
+    needs: [ package ]
     uses: ./.github/workflows/dotnet_publish_nuget.yml
     secrets: inherit
     with:
