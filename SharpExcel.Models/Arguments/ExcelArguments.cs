@@ -5,7 +5,7 @@ namespace SharpExcel.Models.Arguments;
 /// <summary>
 /// Arguments used for reading/writing excel files
 /// </summary>
-public class SharpExcelArguments
+public class ExcelArguments
 {
     /// <summary>
     /// Name of Excel worksheet to read/write

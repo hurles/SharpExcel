@@ -22,14 +22,14 @@ public class Tests
     [Test]
     public async Task CreateWorkbookTest()
     {
-        var workbook = await _synchronizer.GenerateWorkbookAsync(new SharpExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
+        var workbook = await _synchronizer.GenerateWorkbookAsync(new ExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
         Assert.That(workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet") is not null);
     }
     
     [Test]
     public async Task ReadWorkbookTest()
     {
-        var args = new SharpExcelArguments() { SheetName = "TestSheet" };
+        var args = new ExcelArguments() { SheetName = "TestSheet" };
         //create test workbook
         var workbook = await _synchronizer.GenerateWorkbookAsync( args, CreateTestData());
 

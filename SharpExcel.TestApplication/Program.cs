@@ -18,7 +18,7 @@ builder.Services.AddSynchronizer<TestExportModel>(options =>
 {
     options.WithDataStyle(SharpExcelCellStyleConstants.DefaultDataStyle);
     options.WithHeaderStyle(new SharpExcelCellStyle()
-        .WithTextStyle(TextStyle.Bold)
+        .WithTextStyle(TextStyle.Bold | TextStyle.Underlined)
         .WithFontSize(18.0));
     
     options.WithErrorStyle(
@@ -46,7 +46,7 @@ async Task RunApp(IServiceProvider services)
     var exportService = services.GetRequiredService<ISharpExcelSynchronizer<TestExportModel>>();
 
     #region write-workbook
-    var excelArguments = new SharpExcelArguments()
+    var excelArguments = new ExcelArguments()
     {
         SheetName = "Budgets",
         CultureInfo = CultureInfo.CurrentCulture

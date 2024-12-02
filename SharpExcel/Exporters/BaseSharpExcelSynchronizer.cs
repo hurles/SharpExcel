@@ -23,7 +23,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         _options = options;
     }
     /// <inheritdoc />
-    public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(SharpExcelArguments arguments, XLWorkbook workbook)
+    public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook)
     {
         var parsedWorkbook = await ReadWorkbookAsync(arguments, workbook);
         ExporterHelpers.ApplyCellValidation(arguments.SheetName!, workbook, parsedWorkbook);
@@ -32,7 +32,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
 
 
     /// <inheritdoc />
-    public virtual async Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data)
+    public virtual async Task<XLWorkbook> GenerateWorkbookAsync(ExcelArguments arguments, IEnumerable<TModel> data)
     {
         var workbook = new XLWorkbook();
         
@@ -63,7 +63,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     }
 
     /// <inheritdoc />
-    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(SharpExcelArguments arguments, XLWorkbook workbook)
+    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook)
     {
         var instanceData = CreateReadInstanceData(arguments, workbook);
         
@@ -208,7 +208,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <param name="arguments">arguments to use</param>
     /// <param name="workbook">workbook to use</param>
     /// <returns></returns>
-    private SharpExcelWriterInstanceData<TModel> CreateWriteInstanceData(SharpExcelArguments arguments, XLWorkbook workbook)
+    private SharpExcelWriterInstanceData<TModel> CreateWriteInstanceData(ExcelArguments arguments, XLWorkbook workbook)
     {
         var random = new Random();
         var randomNumber = random.Next(0, 1000000);
@@ -234,7 +234,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <param name="arguments">arguments to use</param>
     /// <param name="workbook">workbook to use</param>
     /// <returns></returns>
-    private SharpExcelWriterInstanceData<TModel> CreateReadInstanceData(SharpExcelArguments arguments, XLWorkbook workbook)
+    private SharpExcelWriterInstanceData<TModel> CreateReadInstanceData(ExcelArguments arguments, XLWorkbook workbook)
     {
        return new SharpExcelWriterInstanceData<TModel>()
         {
