@@ -1,17 +1,18 @@
+using ClosedXML.Excel;
 using Microsoft.Extensions.Options;
 using SharpExcel.Tests.Shared;
 using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Configuration.Constants;
+using Shouldly;
+using Xunit;
 
 namespace SharpExcel.Tests;
 
-public class Tests
+public class ExcelImportTests
 {
     private TestSynchronizer _synchronizer = null!;
 
-
-    [SetUp]
-    public void Setup()
+    public ExcelImportTests()
     {
         var options = Options.Create(ExporterOptionsConstants.GetDefaultOptions<TestModel>());
 
@@ -19,14 +20,25 @@ public class Tests
 
     }
 
-    [Test]
+    [Fact]
     public async Task CreateWorkbookTest()
     {
         var workbook = await _synchronizer.GenerateWorkbookAsync(new ExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
-        Assert.That(workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet") is not null);
+        workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet").ShouldNotBeNull();
+        
+        workbook.ShouldNotBeNull();
+        //there should be 2 worksheets, a visible one for the data, and a hidden one to pull data from for the enum dropdowns
+        workbook.Worksheets.Count.ShouldBe(2);
+        
+        //main data worksheet
+        workbook.Worksheet(1).Name.ShouldBe("TestSheet");
+        workbook.Worksheet(1).Visibility.ShouldBe(XLWorksheetVisibility.Visible);
+        
+        //hidden worksheet for enum dropdowns
+        workbook.Worksheet(2).Visibility.ShouldBe(XLWorksheetVisibility.Hidden);
     }
     
-    [Test]
+    [Fact]
     public async Task ReadWorkbookTest()
     {
         var args = new ExcelArguments() { SheetName = "TestSheet" };
@@ -36,13 +48,11 @@ public class Tests
         //read workbook
         var output = await _synchronizer.ReadWorkbookAsync(args, workbook);
         
-        Assert.Multiple(() =>
-        {
-            Assert.That(output.Records.Count, Is.EqualTo(2));
-            Assert.That(output.Records[0]?.Id, Is.EqualTo(1));
-            Assert.That(output.Records[0]?.FirstName, Is.EqualTo("John"));
-            Assert.That(output.Records[0]?.LastName, Is.EqualTo("Doe"));
-        });
+        
+        output.Records.Count.ShouldBe(2);
+        output.Records[0].Id.ShouldBe(1);
+        output.Records[0].FirstName.ShouldBe("John");
+        output.Records[0].LastName.ShouldBe("Doe");
     }
 
     private static List<TestModel> CreateTestData()

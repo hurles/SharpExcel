@@ -45,7 +45,6 @@ async Task RunApp(IServiceProvider services)
     var validationExportPath = $"./OutputFolder/ErrorChecked-{Guid.NewGuid()}.xlsx";
     var exportService = services.GetRequiredService<ISharpExcelSynchronizer<TestExportModel>>();
 
-    #region write-workbook
     var excelArguments = new ExcelArguments()
     {
         SheetName = "Budgets",
@@ -54,16 +53,11 @@ async Task RunApp(IServiceProvider services)
     
     using var workbook = await exportService.GenerateWorkbookAsync(excelArguments, TestDataProvider.GetTestData());
     workbook.SaveAs(exportPath);
-    #endregion
     
-    #region validate-workbook
     using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync(excelArguments, workbook);
     errorCheckedWorkbook.SaveAs(validationExportPath);
-    #endregion
 
-    #region read-workbook
     var importedWorkbook = await exportService.ReadWorkbookAsync(excelArguments, workbook);
-    #endregion
 
     #region write_output
     foreach (var dataItem in importedWorkbook.Records)
