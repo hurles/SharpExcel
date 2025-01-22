@@ -9,7 +9,6 @@ public class StylingCollection<TExportModel>
 
     public ExcelCellStyle DefaultDataStyle { get; set; } = ExcelCellStyleConstants.DefaultDataStyle;
     
-    
     public ExcelCellStyle DefaultErrorStyle { get; set; } = ExcelCellStyleConstants.DefaultErrorStyle;
 
     public List<StylingRule<TExportModel>> Rules { get; set; } = new();
