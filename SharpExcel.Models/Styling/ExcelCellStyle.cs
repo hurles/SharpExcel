@@ -7,9 +7,11 @@ namespace SharpExcel.Models.Styling;
 /// <summary>
 /// Struct defining the styling of a cell
 /// </summary>
-public struct SharpExcelCellStyle
+public record struct ExcelCellStyle
 {
-    public SharpExcelCellStyle(SharpExcelColor textColor, SharpExcelColor backgroundColor, TextStyle textStyle, double? rowHeight = null, double? fontSize = null,
+    public ExcelCellStyle() { }
+
+    public ExcelCellStyle(ExcelColor textColor, ExcelColor backgroundColor, TextStyle textStyle, double? rowHeight = null, double? fontSize = null,
         BorderCollection? borders = null)
     {
         Borders = borders ?? BorderCollection.DataDefault;
@@ -24,13 +26,13 @@ public struct SharpExcelCellStyle
     /// Color used for text within a cell
     /// if null, default color is used
     /// </summary>
-    public SharpExcelColor? TextColor { get; set; } = SharpExcelColorConstants.Black;
+    public ExcelColor? TextColor { get; set; } = ExcelColorConstants.Black;
     
     /// <summary>
     /// Background color used for cell
     /// if null, default color is used
     /// </summary>
-    public SharpExcelColor? BackgroundColor { get; set;} = SharpExcelColorConstants.TransparentWhite;
+    public ExcelColor? BackgroundColor { get; set;} = ExcelColorConstants.TransparentWhite;
 
     /// <summary>
     /// Text style (Bold, Italic, etc)
@@ -55,11 +57,11 @@ public struct SharpExcelCellStyle
     /// </summary>
     public BorderCollection? Borders { get; set; } = BorderCollection.DataDefault;
     
-    public SharpExcelCellStyle WithTextColor(SharpExcelColor color)
+    public ExcelCellStyle WithTextColor(ExcelColor color)
     {
-        return new SharpExcelCellStyle(
+        return new ExcelCellStyle(
             color,
-            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+            BackgroundColor ?? ExcelColorConstants.TransparentWhite,
             TextStyle,
             RowHeight,
             FontSize,
@@ -67,10 +69,10 @@ public struct SharpExcelCellStyle
         );
     }
     
-    public SharpExcelCellStyle WithBackgroundColor(SharpExcelColor color)
+    public ExcelCellStyle WithBackgroundColor(ExcelColor color)
     {
-        return new SharpExcelCellStyle(
-            TextColor ?? SharpExcelColorConstants.Black,
+        return new ExcelCellStyle(
+            TextColor ?? ExcelColorConstants.Black,
             color,
             TextStyle,
             RowHeight,
@@ -79,11 +81,11 @@ public struct SharpExcelCellStyle
         );
     }
     
-    public SharpExcelCellStyle WithTextStyle(TextStyle textStyle)
+    public ExcelCellStyle WithTextStyle(TextStyle textStyle)
     {
-        return new SharpExcelCellStyle(
-            TextColor ?? SharpExcelColorConstants.Black,
-            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+        return new ExcelCellStyle(
+            TextColor ?? ExcelColorConstants.Black,
+            BackgroundColor ?? ExcelColorConstants.TransparentWhite,
             textStyle,
             RowHeight,
             FontSize,
@@ -91,11 +93,11 @@ public struct SharpExcelCellStyle
         );
     }
 
-    public SharpExcelCellStyle WithRowHeight(double height)
+    public ExcelCellStyle WithRowHeight(double height)
     {
-        return new SharpExcelCellStyle(
-            TextColor ?? SharpExcelColorConstants.Black,
-            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+        return new ExcelCellStyle(
+            TextColor ?? ExcelColorConstants.Black,
+            BackgroundColor ?? ExcelColorConstants.TransparentWhite,
             TextStyle,
             height,
             FontSize,
@@ -103,11 +105,11 @@ public struct SharpExcelCellStyle
         );
     }
     
-    public SharpExcelCellStyle WithFontSize(double fontSize)
+    public ExcelCellStyle WithFontSize(double fontSize)
     {
-        return new SharpExcelCellStyle(
-            TextColor ?? SharpExcelColorConstants.Black,
-            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+        return new ExcelCellStyle(
+            TextColor ?? ExcelColorConstants.Black,
+            BackgroundColor ?? ExcelColorConstants.TransparentWhite,
             TextStyle,
             RowHeight,
             fontSize,
@@ -115,11 +117,11 @@ public struct SharpExcelCellStyle
         );
     }
     
-    public SharpExcelCellStyle WithBorders(BorderCollection borders)
+    public ExcelCellStyle WithBorders(BorderCollection borders)
     {
-        return new SharpExcelCellStyle(
-            TextColor ?? SharpExcelColorConstants.Black,
-            BackgroundColor ?? SharpExcelColorConstants.TransparentWhite,
+        return new ExcelCellStyle(
+            TextColor ?? ExcelColorConstants.Black,
+            BackgroundColor ?? ExcelColorConstants.TransparentWhite,
             TextStyle,
             RowHeight,
             FontSize,

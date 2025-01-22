@@ -15,7 +15,7 @@ internal static class SharpExcelCellStyleExtensions
     /// </summary>
     /// <param name="excelStyle"></param>
     /// <param name="cellStyle"></param>
-    internal static void ApplyStyle(this IXLStyle excelStyle, SharpExcelCellStyle cellStyle)
+    internal static void ApplyStyle(this IXLStyle excelStyle, ExcelCellStyle cellStyle)
     {
         if (cellStyle.BackgroundColor.HasValue)
         {

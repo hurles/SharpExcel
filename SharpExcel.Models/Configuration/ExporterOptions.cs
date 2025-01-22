@@ -20,7 +20,7 @@ public class ExporterOptions<TExportModel>
     /// </summary>
     /// <param name="style">style to use</param>
     /// <returns></returns>
-    public ExporterOptions<TExportModel> WithHeaderStyle(SharpExcelCellStyle style)
+    public ExporterOptions<TExportModel> WithHeaderStyle(ExcelCellStyle style)
     {
         Styling.DefaultHeaderStyle = style;
         return this;
@@ -31,7 +31,7 @@ public class ExporterOptions<TExportModel>
     /// </summary>
     /// <param name="style">style to use</param>
     /// <returns></returns>
-    public ExporterOptions<TExportModel> WithDataStyle(SharpExcelCellStyle style)
+    public ExporterOptions<TExportModel> WithDataStyle(ExcelCellStyle style)
     {
         Styling.DefaultDataStyle = style;
         return this;
@@ -42,7 +42,7 @@ public class ExporterOptions<TExportModel>
     /// </summary>
     /// <param name="style">style to use</param>
     /// <returns></returns>
-    public ExporterOptions<TExportModel> WithErrorStyle(SharpExcelCellStyle style)
+    public ExporterOptions<TExportModel> WithErrorStyle(ExcelCellStyle style)
     {
         Styling.DefaultErrorStyle = style;
         return this;

@@ -1,7 +1,22 @@
 # SharpExcel
-SharpExcel is a .NET Standard 2.0+ library to simplify exporting, importing, and validate data provided using Microsoft Excel files (.xlsx, .xlsm). 
 
-The library is based on ClosedXml, and provides basic, but overridable formatting using a fluent API
+SharpExcel is a powerful, easy-to-use .NET Standard 2.0 library designed to simplify the process of importing, exporting, styling, and validating Excel files. SharpExcel uses ClosedXml to handle reading and writing Excel files. 
+
+### Main focus
+The library is focused on mapping a collection of C# models to a corresponding Excel file. 
+
+**ExcelSharp makes sure that every Excel file you export, can also be re-imported and converted to the same data as was used to export it. This is useful for providing a template for a user or client to provide data to load into a program.**
+
+
+### Validation
+The library uses FluentValidation to validate imported data. This will generate a list of exactly which cells are invalid, and why.
+We can even output a new Excel file, where all invalid cells have a red color, or any other defined style.
+
+### Styling
+SharpExcel also provides a fluent API to define styles. We can set default data and header styles and even override styles based on specific rules (for example: make a cell red when a number is below zero).
+
+### Auto Dropdowns
+Enum properties in your model will be automatically mapped into dropdown lists for a user to select.
 
 ---
 ## Install SharpExcel
@@ -19,7 +34,7 @@ There are a couple of simple steps to start using SharpExcel:
 
 ### Step 1: Define a data model
 
-When defining a data model, we can use the ``[SharpExcelColumnDefinition]`` attribute to map Excel columns to model properties.
+When defining a data model, we can use the ``[ExcelColumnDefinition]`` attribute to map Excel columns to model properties.
 We can also use Data annotation attributes to generate validation errors when reading Excel files.
 
 *In this example model we create a model for an employee:*
@@ -27,17 +42,17 @@ We can also use Data annotation attributes to generate validation errors when re
 ```csharp
 public class EmployeeModel
 {
-    [SharpExcelColumnDefinition(columnName: "ID", width: 45)]
+    [ExcelColumnDefinition(columnName: "ID", width: 45)]
     public int Id { get; set; }
 
-    [SharpExcelColumnDefinition(columnName: "First Name", width: 30)]
+    [ExcelColumnDefinition(columnName: "First Name", width: 30)]
     public string FirstName { get; set; } = null!;
 
     [StringLength(12)]
-    [SharpExcelColumnDefinition(columnName: "Last Name", width: 50)]
+    [ExcelColumnDefinition(columnName: "Last Name", width: 50)]
     public string LastName { get; set; } = null!;
     
-    [SharpExcelColumnDefinition(columnName: "Budget", width: 15)]
+    [ExcelColumnDefinition(columnName: "Budget", width: 15)]
     public decimal Budget { get; set; }
     
     //SharpExcel also supports enum values (these will be displayed as dropdowns in Excel)

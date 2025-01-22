@@ -32,7 +32,7 @@ internal static class ExporterHelpers
             {
                 stringBuilder.AppendLine(item.ErrorMessage);
             }
-            cell.Style.ApplyStyle(SharpExcelCellStyleConstants.DefaultErrorStyle);
+            cell.Style.ApplyStyle(ExcelCellStyleConstants.DefaultErrorStyle);
             cell.CreateComment().AddText(stringBuilder.ToString());
         }
     }
@@ -173,7 +173,7 @@ internal static class ExporterHelpers
     /// <param name="row">row to apply row height to if necessary</param>
     /// <typeparam name="TModel">type of the data item being processed</typeparam>
     /// <returns></returns>
-    private static SharpExcelCellStyle GetCellStyle<TModel>(SharpExcelWriterInstanceData<TModel> instance, TModel dataItem, PropertyData mapping, IXLRow row) 
+    private static ExcelCellStyle GetCellStyle<TModel>(SharpExcelWriterInstanceData<TModel> instance, TModel dataItem, PropertyData mapping, IXLRow row) 
         where TModel : class
     {
         var dataStyle = instance.DataStyle;
