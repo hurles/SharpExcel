@@ -14,24 +14,39 @@ using SharpExcel.Models.Styling.Text;
 
 HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(null);
 
-builder.Services.AddSynchronizer<TestExportModel>(options =>
+//Here we add a synchronizer to the service collection
+builder.Services.AddSharpExcelSynchronizer<TestExportModel>(options =>
 {
-    options.WithDataStyle(SharpExcelCellStyleConstants.DefaultDataStyle);
-    options.WithHeaderStyle(new SharpExcelCellStyle()
-        .WithTextStyle(TextStyle.Bold)
+    //set default style of
+    options.WithDataStyle(ExcelCellStyleConstants.DefaultDataStyle);
+    options.WithHeaderStyle(new ExcelCellStyle()
+        .WithTextStyle(TextStyle.Bold | TextStyle.Underlined)
         .WithFontSize(18.0));
     
+    //here we define the style of an errored cell.
+    //This is only applicable when we want to return a validated excel file.
+    //Any cells that have validation errors will have this style
     options.WithErrorStyle(
-            SharpExcelCellStyleConstants.DefaultDataStyle
-                .WithTextColor(new SharpExcelColor(255, 100, 100))
-                .WithBackgroundColor(new SharpExcelColor(255, 100, 100, 70))
+            ExcelCellStyleConstants.DefaultDataStyle
+                .WithTextColor(new ExcelColor(255, 100, 100))
+                .WithBackgroundColor(new ExcelColor(255, 100, 100, 70))
         );
+    
+    //We can also define rules for styling
     options.WithStylingRule(rule =>
         {
+            //define which property we want to check
             rule.ForProperty(nameof(TestExportModel.Budget));
+            
+            //define the condition for this rule
             rule.WithCondition(x => x.Budget < 0);
-            rule.WhenTrue(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(255, 100, 100)));
-            rule.WhenFalse(SharpExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(80, 160, 80)));
+            
+            //define style to do when the rule is true
+            rule.WhenTrue(ExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(255, 100, 100)));
+            
+            //define style for when the rule is false
+            //can be omitted to use default style
+            rule.WhenFalse(ExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(80, 160, 80)));
         });
 });
 
@@ -39,14 +54,14 @@ using IHost host = builder.Build();
 await RunApp(host.Services);
 await host.RunAsync();
 
+//this is our test application
 async Task RunApp(IServiceProvider services)
 {
     var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
     var validationExportPath = $"./OutputFolder/ErrorChecked-{Guid.NewGuid()}.xlsx";
     var exportService = services.GetRequiredService<ISharpExcelSynchronizer<TestExportModel>>();
 
-    #region write-workbook
-    var excelArguments = new SharpExcelArguments()
+    var excelArguments = new ExcelArguments()
     {
         SheetName = "Budgets",
         CultureInfo = CultureInfo.CurrentCulture
@@ -54,16 +69,11 @@ async Task RunApp(IServiceProvider services)
     
     using var workbook = await exportService.GenerateWorkbookAsync(excelArguments, TestDataProvider.GetTestData());
     workbook.SaveAs(exportPath);
-    #endregion
     
-    #region validate-workbook
     using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync(excelArguments, workbook);
     errorCheckedWorkbook.SaveAs(validationExportPath);
-    #endregion
 
-    #region read-workbook
     var importedWorkbook = await exportService.ReadWorkbookAsync(excelArguments, workbook);
-    #endregion
 
     #region write_output
     foreach (var dataItem in importedWorkbook.Records)
@@ -88,4 +98,6 @@ async Task RunApp(IServiceProvider services)
         }
     }
     #endregion
+    
+    
 }

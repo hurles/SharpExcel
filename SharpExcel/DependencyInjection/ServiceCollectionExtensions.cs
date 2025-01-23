@@ -17,7 +17,7 @@ public static class SharpExcelServiceCollectionExtensions
     /// <param name="services">the ServiceCollection</param>
     /// <param name="options">the options to configure this SharpExcel exporter with. Default options are used when null</param>
     /// <typeparam name="TExportModel"></typeparam>
-    public static void AddSynchronizer<TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
+    public static void AddSharpExcelSynchronizer<TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
         where TExportModel : class, new()
     {
         services.Configure(options ?? (_ => ExporterOptionsConstants.GetDefaultOptions<TExportModel>()));
@@ -31,7 +31,7 @@ public static class SharpExcelServiceCollectionExtensions
     /// <param name="options">the options to configure this SharpExcel exporter with. Default options are used when null</param>
     /// <typeparam name="TExporter">The type of the exporter. Must be inherited from BaseExcelExporter </typeparam>
     /// <typeparam name="TExportModel">any class to use as data model</typeparam>
-    public static void AddSynchronizer<TExporter, TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
+    public static void AddSharpExcelSynchronizer<TExporter, TExportModel>(this IServiceCollection services, Action<ExporterOptions<TExportModel>>? options)
         where TExportModel : class, new()
         where TExporter : BaseSharpExcelSynchronizer<TExportModel>
     {

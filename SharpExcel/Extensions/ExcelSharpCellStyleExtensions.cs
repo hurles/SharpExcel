@@ -15,7 +15,7 @@ internal static class SharpExcelCellStyleExtensions
     /// </summary>
     /// <param name="excelStyle"></param>
     /// <param name="cellStyle"></param>
-    internal static void ApplyStyle(this IXLStyle excelStyle, SharpExcelCellStyle cellStyle)
+    internal static void ApplyStyle(this IXLStyle excelStyle, ExcelCellStyle cellStyle)
     {
         if (cellStyle.BackgroundColor.HasValue)
         {
@@ -40,20 +40,11 @@ internal static class SharpExcelCellStyleExtensions
             excelStyle.Font.FontSize = (double)cellStyle.FontSize;
         }
         
-        if (cellStyle.TextStyle != TextStyle.None)
+        if (cellStyle.TextStyle > 0)
         {
-            switch (cellStyle.TextStyle)
-            {
-                case TextStyle.Bold:
-                    excelStyle.Font.Bold = true;
-                    break;
-                case TextStyle.Italic:
-                    excelStyle.Font.Italic = true;
-                    break;
-                case TextStyle.Underlined:
-                    excelStyle.Font.SetUnderline(XLFontUnderlineValues.Single);
-                    break;
-            }
+            excelStyle.Font.Bold = cellStyle.TextStyle.HasFlag(TextStyle.Bold);
+            excelStyle.Font.Italic = cellStyle.TextStyle.HasFlag(TextStyle.Italic);
+            excelStyle.Font.Underline = cellStyle.TextStyle.HasFlag(TextStyle.Underlined) ? XLFontUnderlineValues.Single : XLFontUnderlineValues.None;
         }
 
         if (cellStyle.Borders is not null)

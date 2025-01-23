@@ -17,7 +17,7 @@ public interface ISharpExcelSynchronizer<TModel>
     /// <param name="arguments">Collection of arguments</param>
     /// <param name="data">The data to generate the workbook from</param>
     /// <returns></returns>
-    public Task<XLWorkbook> GenerateWorkbookAsync(SharpExcelArguments arguments, IEnumerable<TModel> data);
+    public Task<XLWorkbook> GenerateWorkbookAsync(ExcelArguments arguments, IEnumerable<TModel> data);
 
     /// <summary>
     /// Reads a workbook to convert it into the given model
@@ -26,7 +26,7 @@ public interface ISharpExcelSynchronizer<TModel>
     /// <param name="workbook"></param>
     /// <typeparam name="TModel"></typeparam>
     /// <returns></returns>
-    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(SharpExcelArguments arguments, XLWorkbook workbook);
+    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook);
 
     /// <summary>
     /// Reads, then returns the supplied workbook, but highlights cells containing invalid data, using standard System.ComponentModel.DataAnnotations validation on the model
@@ -34,5 +34,5 @@ public interface ISharpExcelSynchronizer<TModel>
     /// <param name="arguments">Collection of arguments</param>
     /// <param name="workbook">The workbook</param>
     /// <returns>The highlighted workbook</returns>
-    public Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(SharpExcelArguments arguments, XLWorkbook workbook);
+    public Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook);
 }

@@ -5,12 +5,11 @@ namespace SharpExcel.Models.Styling;
 
 public class StylingCollection<TExportModel>
 {
-    public SharpExcelCellStyle DefaultHeaderStyle { get; set; } = SharpExcelCellStyleConstants.DefaultHeaderStyle;
+    public ExcelCellStyle DefaultHeaderStyle { get; set; } = ExcelCellStyleConstants.DefaultHeaderStyle;
 
-    public SharpExcelCellStyle DefaultDataStyle { get; set; } = SharpExcelCellStyleConstants.DefaultDataStyle;
+    public ExcelCellStyle DefaultDataStyle { get; set; } = ExcelCellStyleConstants.DefaultDataStyle;
     
-    
-    public SharpExcelCellStyle DefaultErrorStyle { get; set; } = SharpExcelCellStyleConstants.DefaultErrorStyle;
+    public ExcelCellStyle DefaultErrorStyle { get; set; } = ExcelCellStyleConstants.DefaultErrorStyle;
 
     public List<StylingRule<TExportModel>> Rules { get; set; } = new();
 }

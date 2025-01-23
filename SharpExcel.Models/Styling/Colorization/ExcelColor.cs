@@ -1,7 +1,7 @@
 namespace SharpExcel.Models.Styling.Colorization;
-public readonly struct SharpExcelColor : IEquatable<SharpExcelColor>
+public readonly struct ExcelColor : IEquatable<ExcelColor>
 {
-    public SharpExcelColor(byte r, byte g, byte b, byte a = 255)
+    public ExcelColor(byte r, byte g, byte b, byte a = 255)
     {
         R = r;
         G = g;
@@ -35,12 +35,12 @@ public readonly struct SharpExcelColor : IEquatable<SharpExcelColor>
         set => _colorBytes[3] = value;
     }
 
-    public SharpExcelColor WithAlpha(byte alpha)
+    public ExcelColor WithAlpha(byte alpha)
     {
-        return new SharpExcelColor(_colorBytes[0], _colorBytes[1], _colorBytes[2], alpha);
+        return new ExcelColor(_colorBytes[0], _colorBytes[1], _colorBytes[2], alpha);
     }
     
-    public bool Equals(SharpExcelColor other)
+    public bool Equals(ExcelColor other)
     {
         return _colorBytes.SequenceEqual(other._colorBytes);
     }

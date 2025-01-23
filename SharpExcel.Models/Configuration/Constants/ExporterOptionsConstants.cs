@@ -16,8 +16,8 @@ public static class ExporterOptionsConstants
         where TExportModel : class, new()
     {
         return new ExporterOptions<TExportModel>()
-            .WithDataStyle(SharpExcelCellStyleConstants.DefaultDataStyle)
-            .WithHeaderStyle(SharpExcelCellStyleConstants.DefaultHeaderStyle)
-            .WithErrorStyle(SharpExcelCellStyleConstants.DefaultErrorStyle);
+            .WithDataStyle(ExcelCellStyleConstants.DefaultDataStyle)
+            .WithHeaderStyle(ExcelCellStyleConstants.DefaultHeaderStyle)
+            .WithErrorStyle(ExcelCellStyleConstants.DefaultErrorStyle);
     }
 }

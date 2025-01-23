@@ -16,17 +16,17 @@ internal class SharpExcelWriterInstanceData<TModel>
     /// <summary>
     /// Header style to use for this instance
     /// </summary>
-    public SharpExcelCellStyle HeaderStyle { get; set; }
+    public ExcelCellStyle HeaderStyle { get; set; }
     
     /// <summary>
     /// Error style to use for this instance
     /// </summary>
-    public SharpExcelCellStyle ErrorStyle { get; set; }
+    public ExcelCellStyle ErrorStyle { get; set; }
     
     /// <summary>
     /// Style to use for data cells
     /// </summary>
-    public SharpExcelCellStyle DataStyle { get; set; }
+    public ExcelCellStyle DataStyle { get; set; }
     
     /// <summary>
     /// lookup for styling rules, so we can look up rules for properties faster

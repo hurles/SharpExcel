@@ -6,9 +6,9 @@ public class StylingRule<TModel>
     
     private List<Func<TModel, bool>> Conditions { get; set; } = new();
     
-    private SharpExcelCellStyle? StyleWhenTrue { get; set; } = new();
+    private ExcelCellStyle? StyleWhenTrue { get; set; } = new();
     
-    private SharpExcelCellStyle? StyleWhenFalse { get; set; } = new();
+    private ExcelCellStyle? StyleWhenFalse { get; set; } = new();
     
     
     public StylingRule<TModel> WithCondition(Func<TModel, bool> condition)
@@ -25,7 +25,7 @@ public class StylingRule<TModel>
         return this;
     }
     
-    public SharpExcelCellStyle? EvaluateRules(TModel model)
+    public ExcelCellStyle? EvaluateRules(TModel model)
     {
         bool allAreTrue = false;
         foreach (var condition in Conditions)
@@ -39,14 +39,14 @@ public class StylingRule<TModel>
         return allAreTrue ? StyleWhenTrue : StyleWhenFalse;
     }
 
-    public StylingRule<TModel> WhenTrue(SharpExcelCellStyle style)
+    public StylingRule<TModel> WhenTrue(ExcelCellStyle style)
     {
         StyleWhenTrue = style;
         //return this object so we can chain calls
         return this;
     }
     
-    public StylingRule<TModel> WhenFalse(SharpExcelCellStyle style)
+    public StylingRule<TModel> WhenFalse(ExcelCellStyle style)
     {
         StyleWhenFalse = style;
         //return this object so we can chain calls
