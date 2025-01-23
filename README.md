@@ -25,7 +25,7 @@ If you want to include SharpExcel in your project, you can [install it directly 
 
 To install SharpExcel, run the following command in the Package Manager Console
 ```
-PM> Install-Package SharpExcel
+dotnet add package SharpExcel
 ```
 ---
 ## Usage
