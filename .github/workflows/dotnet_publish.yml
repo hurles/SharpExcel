@@ -26,5 +26,5 @@ jobs:
     - name: create package
       shell: bash
       env: 
-        ACTIONS_ACCESSTOKEN: ${{ secrets.ACTIONS_ACCESSTOKEN }}
-      run: dotnet nuget push "package_output/**/*.nupkg" -s "github" --api-key "$ACTIONS_ACCESSTOKEN"
+        ACTIONS_ACCESSTOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push "package_output/**/*.nupkg" -s "github" --api-key $ACTIONS_ACCESSTOKEN
