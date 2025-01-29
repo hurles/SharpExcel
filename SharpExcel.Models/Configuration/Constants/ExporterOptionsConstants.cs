@@ -1,4 +1,5 @@
 using SharpExcel.Models.Styling.Constants;
+using SharpExcel.Models.Targeting.Constants;
 
 namespace SharpExcel.Models.Configuration.Constants;
 
@@ -18,6 +19,7 @@ public static class ExporterOptionsConstants
         return new ExporterOptions<TExportModel>()
             .WithDataStyle(ExcelCellStyleConstants.DefaultDataStyle)
             .WithHeaderStyle(ExcelCellStyleConstants.DefaultHeaderStyle)
-            .WithErrorStyle(ExcelCellStyleConstants.DefaultErrorStyle);
+            .WithErrorStyle(ExcelCellStyleConstants.DefaultErrorStyle)
+            .WithTarget(ExcelTargetConstants.DefaultTargetRule);
     }
 }

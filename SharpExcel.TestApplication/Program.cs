@@ -9,8 +9,10 @@ using Microsoft.Extensions.Hosting;
 using SharpExcel.Abstraction;
 using SharpExcel.DependencyInjection;
 using SharpExcel.Models.Styling;
+using SharpExcel.Models.Styling.Borders;
 using SharpExcel.Models.Styling.Constants;
 using SharpExcel.Models.Styling.Text;
+using SharpExcel.Models.Targeting.Constants;
 
 HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(null);
 
@@ -21,16 +23,20 @@ builder.Services.AddSharpExcelSynchronizer<TestExportModel>(options =>
     options.WithDataStyle(ExcelCellStyleConstants.DefaultDataStyle);
     options.WithHeaderStyle(new ExcelCellStyle()
         .WithTextStyle(TextStyle.Bold | TextStyle.Underlined)
-        .WithFontSize(18.0));
+        .WithBorders(BorderCollection.HeaderDefault)
+        .WithFontSize(16.0));
     
     //here we define the style of an errored cell.
-    //This is only applicable when we want to return a validated excel file.
+    //This is only applicable when we want to return a validated Excel file.
     //Any cells that have validation errors will have this style
     options.WithErrorStyle(
             ExcelCellStyleConstants.DefaultDataStyle
                 .WithTextColor(new ExcelColor(255, 100, 100))
                 .WithBackgroundColor(new ExcelColor(255, 100, 100, 70))
         );
+
+    //We can target where to read/write data
+    options.WithTarget(ExcelTargetConstants.DefaultTargetRule);
     
     //We can also define rules for styling
     options.WithStylingRule(rule =>

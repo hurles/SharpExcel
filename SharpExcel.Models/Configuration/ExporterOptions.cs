@@ -1,5 +1,7 @@
 using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Rules;
+using SharpExcel.Models.Targeting;
+using SharpExcel.Models.Targeting.Constants;
 
 namespace SharpExcel.Models.Configuration;
 
@@ -14,6 +16,11 @@ public class ExporterOptions<TExportModel>
     /// Collection of styling rules
     /// </summary>
     public StylingCollection<TExportModel> Styling { get; set; } = new();
+
+    /// <summary>
+    /// Tells SharpExcel where to read from and write to
+    /// </summary>
+    public SharpExcelCellTargetRule TargetRule { get; set; } = ExcelTargetConstants.DefaultTargetRule;
 
     /// <summary>
     /// Fluent method to set default header style for this exporter
@@ -58,6 +65,17 @@ public class ExporterOptions<TExportModel>
         var stylingRule = new StylingRule<TExportModel>();
         stylingRuleOptions(stylingRule);
         Styling.Rules.Add(stylingRule);
+        return this;
+    }
+    
+    /// <summary>
+    /// Adds a target to read from, and write to. If there already is a target, it will be overwritten
+    /// </summary>
+    /// <param name="targetRule"></param>
+    /// <returns></returns>
+    public ExporterOptions<TExportModel> WithTarget(SharpExcelCellTargetRule targetRule)
+    {
+        TargetRule = targetRule;
         return this;
     }
 }
