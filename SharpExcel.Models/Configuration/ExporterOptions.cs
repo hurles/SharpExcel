@@ -1,3 +1,4 @@
+using SharpExcel.Models.Data;
 using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Rules;
 
@@ -14,6 +15,11 @@ public class ExporterOptions<TExportModel>
     /// Collection of styling rules
     /// </summary>
     public StylingCollection<TExportModel> Styling { get; set; } = new();
+    
+    /// <summary>
+    /// Targeting collection
+    /// </summary>
+    public TargetingCollection<TExportModel> Targeting { get; set; } = new();
 
     /// <summary>
     /// Fluent method to set default header style for this exporter
@@ -58,6 +64,19 @@ public class ExporterOptions<TExportModel>
         var stylingRule = new StylingRule<TExportModel>();
         stylingRuleOptions(stylingRule);
         Styling.Rules.Add(stylingRule);
+        return this;
+    }
+    
+    /// <summary>
+    /// Fluent method to add a styling rule for this exporter
+    /// </summary>
+    /// <param name="stylingRuleOptions">constructs the styling rule</param>
+    /// <returns></returns>
+    public ExporterOptions<TExportModel> WithTargetingRule(Action<TargetingRule<TExportModel>> targetingRuleOptions)
+    {
+        var stylingRule = new TargetingRule<TExportModel>();
+        targetingRuleOptions(stylingRule);
+        Targeting.Rules.Add(stylingRule);
         return this;
     }
 }

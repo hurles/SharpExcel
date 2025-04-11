@@ -48,6 +48,14 @@ builder.Services.AddSharpExcelSynchronizer<TestExportModel>(options =>
             //can be omitted to use default style
             rule.WhenFalse(ExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(80, 160, 80)));
         });
+
+    options.WithTargetingRule(rule =>
+    {
+        rule.WithCondition(_ => true); 
+        rule.WithSheetName("Budgets"); 
+        rule.WithStartColumn(1); 
+        rule.WithStartRow(1); 
+    });
 });
 
 using IHost host = builder.Build();

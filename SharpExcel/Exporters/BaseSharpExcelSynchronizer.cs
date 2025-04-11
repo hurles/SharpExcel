@@ -22,6 +22,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     {
         _options = options;
     }
+    
     /// <inheritdoc />
     public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook)
     {
