@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SharpExcel.Models.Data;
 
 public interface ITargetingRule
@@ -7,11 +9,11 @@ public interface ITargetingRule
 public record TargetingRule<TRecord> : ITargetingRule
 {
     /// <summary>
-    /// name of the sheet in the excel file
-    /// When not specified, we will use the first sheet in the file
+    /// REQUIRED: name of the sheet in the excel file
     /// </summary>
-    public string? SheetName { get; set; }
-    
+    [MinLength(1)]
+    public string SheetName { get; set; } = null!;
+
     /// <summary>
     /// Optional Row to start reading/writing from.
     /// This is useful when you want to only affect part of a sheet.
@@ -53,9 +55,9 @@ public record TargetingRule<TRecord> : ITargetingRule
     /// <summary>
     /// Sets the column to start reading/writing from.
     /// </summary>
-    public TargetingRule<TRecord> WithStartColumn(int rowId)
+    public TargetingRule<TRecord> WithStartColumn(int columnId)
     {
-        Row = rowId;
+        Column = columnId;
         //return this object so we can chain calls
         return this;
     }

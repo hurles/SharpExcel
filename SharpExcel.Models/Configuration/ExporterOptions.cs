@@ -15,7 +15,7 @@ public class ExporterOptions<TExportModel>
     /// Collection of styling rules
     /// </summary>
     public StylingCollection<TExportModel> Styling { get; set; } = new();
-    
+
     /// <summary>
     /// Targeting collection
     /// </summary>

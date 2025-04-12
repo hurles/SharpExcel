@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling.Colorization;
 using SharpExcel.TestApplication.TestData;
@@ -51,10 +50,18 @@ builder.Services.AddSharpExcelSynchronizer<TestExportModel>(options =>
 
     options.WithTargetingRule(rule =>
     {
-        rule.WithCondition(_ => true); 
-        rule.WithSheetName("Budgets"); 
+        rule.WithCondition(x => x.Status != TestStatus.Fired); 
+        rule.WithSheetName("Employees"); 
         rule.WithStartColumn(1); 
-        rule.WithStartRow(1); 
+        rule.WithStartRow(3); 
+    });
+    
+    options.WithTargetingRule(rule =>
+    {
+        rule.WithCondition(x => x.Status == TestStatus.Fired); 
+        rule.WithSheetName("Fired"); 
+        rule.WithStartColumn(1); 
+        rule.WithStartRow(3); 
     });
 });
 
@@ -68,20 +75,14 @@ async Task RunApp(IServiceProvider services)
     var exportPath = $"./OutputFolder/TestExport-{Guid.NewGuid()}.xlsx";
     var validationExportPath = $"./OutputFolder/ErrorChecked-{Guid.NewGuid()}.xlsx";
     var exportService = services.GetRequiredService<ISharpExcelSynchronizer<TestExportModel>>();
-
-    var excelArguments = new ExcelArguments()
-    {
-        SheetName = "Budgets",
-        CultureInfo = CultureInfo.CurrentCulture
-    };
     
-    using var workbook = await exportService.GenerateWorkbookAsync(excelArguments, TestDataProvider.GetTestData());
+    using var workbook = await exportService.GenerateWorkbookAsync(CultureInfo.CurrentCulture, TestDataProvider.GetTestData());
     workbook.SaveAs(exportPath);
     
-    using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync(excelArguments, workbook);
+    using var errorCheckedWorkbook = await exportService.ValidateAndAnnotateWorkbookAsync(CultureInfo.CurrentCulture, workbook);
     errorCheckedWorkbook.SaveAs(validationExportPath);
 
-    var importedWorkbook = await exportService.ReadWorkbookAsync(excelArguments, workbook);
+    var importedWorkbook = await exportService.ReadWorkbookAsync(CultureInfo.CurrentCulture, workbook);
 
     #region write_output
     foreach (var dataItem in importedWorkbook.Records)

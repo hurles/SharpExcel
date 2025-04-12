@@ -24,4 +24,9 @@ public record struct ExcelAddress
     /// Header name
     /// </summary>
     public string? HeaderName { get; set; }
+    
+    /// <summary>
+    /// Sheet Name
+    /// </summary>
+    public string SheetName { get; set; }
 }

@@ -1,6 +1,7 @@
 using System.Globalization;
 using ClosedXML.Excel;
 using SharpExcel.Exporters.Helpers;
+using SharpExcel.Models.Data;
 using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Rules;
 
@@ -34,14 +35,24 @@ internal class SharpExcelWriterInstanceData<TModel>
     public Dictionary<string, List<StylingRule<TModel>>> StylingRuleLookup { get; set; } = new();
     
     /// <summary>
+    /// List of targeting rules, so we can look up rules for properties faster
+    /// </summary>
+    public List<TargetingRule<TModel>> TargetingRules { get; set; } = new();
+    
+    /// <summary>
+    /// DropdownMappings for this instance
+    /// </summary>
+    public Dictionary<Type, string> DropdownMappings { get; set; } = new();
+    
+    /// <summary>
     /// Collection of property metadata (column name etc.)
     /// </summary>
     public PropertyDataCollection Properties { get; set; } = new();
     
     /// <summary>
-    /// Main worksheet to use for reading/writing
+    /// Workbook for this instance
     /// </summary>
-    public IXLWorksheet MainWorksheet { get; set; } = null!;
+    public IXLWorkbook Workbook { get; set; } = null!;
     
     /// <summary>
     /// Hidden worksheet to serve as source for all generated dropdown menus
