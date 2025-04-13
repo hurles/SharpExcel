@@ -1,5 +1,5 @@
-﻿using ClosedXML.Excel;
-using SharpExcel.Models.Arguments;
+﻿using System.Globalization;
+using ClosedXML.Excel;
 using SharpExcel.Models.Results;
 
 namespace SharpExcel.Abstraction;
@@ -14,10 +14,10 @@ public interface ISharpExcelSynchronizer<TModel>
     /// <summary>
     /// Generates a workbook based on the provided data
     /// </summary>
-    /// <param name="arguments">Collection of arguments</param>
+    /// <param name="cultureInfo"></param>
     /// <param name="data">The data to generate the workbook from</param>
     /// <returns></returns>
-    public Task<XLWorkbook> GenerateWorkbookAsync(ExcelArguments arguments, IEnumerable<TModel> data);
+    public Task<XLWorkbook> GenerateWorkbookAsync(CultureInfo cultureInfo, ICollection<TModel> data);
 
     /// <summary>
     /// Reads a workbook to convert it into the given model
@@ -26,13 +26,13 @@ public interface ISharpExcelSynchronizer<TModel>
     /// <param name="workbook"></param>
     /// <typeparam name="TModel"></typeparam>
     /// <returns></returns>
-    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook);
+    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(CultureInfo arguments, XLWorkbook workbook);
 
     /// <summary>
     /// Reads, then returns the supplied workbook, but highlights cells containing invalid data, using standard System.ComponentModel.DataAnnotations validation on the model
     /// </summary>
-    /// <param name="arguments">Collection of arguments</param>
+    /// <param name="cultureInfo"></param>
     /// <param name="workbook">The workbook</param>
     /// <returns>The highlighted workbook</returns>
-    public Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook);
+    public Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(CultureInfo cultureInfo, XLWorkbook workbook);
 }

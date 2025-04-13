@@ -1,12 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Extensions.Options;
 using SharpExcel.Abstraction;
 using SharpExcel.Extensions;
-using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Configuration;
+using SharpExcel.Models.Data;
 using SharpExcel.Models.Results;
+using SharpExcel.Models.Styling.Constants;
 
 namespace SharpExcel.Exporters;
 
@@ -22,76 +24,127 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     {
         _options = options;
     }
+    
     /// <inheritdoc />
-    public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook)
+    public async Task<XLWorkbook> ValidateAndAnnotateWorkbookAsync(CultureInfo cultureInfo, XLWorkbook workbook)
     {
-        var parsedWorkbook = await ReadWorkbookAsync(arguments, workbook);
-        ExporterHelpers.ApplyCellValidation(arguments.SheetName!, workbook, parsedWorkbook);
+        var parsedWorkbook = await ReadWorkbookAsync(cultureInfo, workbook);
+        ExporterHelpers.ApplyCellValidation(workbook, parsedWorkbook);
+        return workbook;
+    }
+    
+    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(CultureInfo cultureInfo, XLWorkbook workbook)
+    {
+        var output = new ExcelReadResult<TModel>();
+        var instanceData = CreateReadInstanceData(cultureInfo, workbook);
+
+        var rules = _options.Value.Targeting.Rules.GroupBy(rule => rule.SheetName);
+
+        foreach (var ruleGroup in rules)
+        {
+            if (!instanceData.Workbook.Worksheets.TryGetWorksheet(ruleGroup.Key, out var worksheet))
+            {
+                continue;
+            }
+
+            foreach (var rule in ruleGroup)
+            {
+                ReadSheetAsync(rule, output, instanceData, worksheet);
+            }
+        }
+
+        return Task.FromResult(output);
+    }
+
+    public virtual async Task<XLWorkbook> GenerateWorkbookAsync(CultureInfo cultureInfo, ICollection<TModel> data)
+    {
+        var workbook = new XLWorkbook();
+
+        if (!_options.Value.Targeting.Rules.Any())
+        {
+            _options.Value.Targeting.Rules = [ExcelTargetingConstants<TModel>.DefaultTargetingRule];
+        }
+
+        Dictionary<TargetingRule<TModel>, IEnumerable<TModel>> dataGroupedByTargetingRule = new();
+
+        foreach (var targetingRule in _options.Value.Targeting.Rules)
+        {
+            dataGroupedByTargetingRule.Add(targetingRule, data.Where(x => targetingRule.RulePredicate != null && targetingRule.RulePredicate(x)).ToList());
+            if (!workbook.Worksheets.TryGetWorksheet(targetingRule.SheetName, out var _))
+            {
+                workbook.Worksheets.Add(targetingRule.SheetName);
+            }
+        }
+        
+        var instanceData = CreateWriteInstanceData(cultureInfo, workbook);
+        EnumExporter.AddEnumDropdownMappingsToSheet(instanceData);
+
+        foreach (var targetingRuleData in dataGroupedByTargetingRule)
+        {
+            await GenerateSheetAsync(targetingRuleData.Key, instanceData, targetingRuleData.Value);
+        }
+
+
         return workbook;
     }
 
 
     /// <inheritdoc />
-    public virtual async Task<XLWorkbook> GenerateWorkbookAsync(ExcelArguments arguments, IEnumerable<TModel> data)
+    internal virtual Task GenerateSheetAsync(TargetingRule<TModel> targetingRule, SharpExcelWriterInstanceData<TModel> instanceData, IEnumerable<TModel> data)
     {
-        var workbook = new XLWorkbook();
-        
-        var instanceData = CreateWriteInstanceData(arguments, workbook);
-
-        if (instanceData.HeaderStyle.RowHeight.HasValue)
+        if (!instanceData.Workbook.Worksheets.TryGetWorksheet(targetingRule.SheetName, out var _))
         {
-            instanceData.MainWorksheet.Rows().Height = instanceData.HeaderStyle.RowHeight.Value;
+            instanceData.Workbook.Worksheets.Add(targetingRule.SheetName);
         }
 
-        //start at Row 1 because Excel starts at 1
-        var rowIndex = 1;
+        //start at Row 1 if not defined because Excel starts at 1
+        var rowIndex = targetingRule.Row ?? 1;
 
-        var dropdownDataMappings = EnumExporter.AddEnumDropdownMappingsToSheet(instanceData);
-
-        ExporterHelpers.WriteHeaderRow(instanceData, rowIndex);
+        ExporterHelpers.WriteHeaderRow(targetingRule, instanceData, rowIndex, targetingRule.Column);
 
         //go to next row to start inserting data
         rowIndex++;
         
         foreach (var dataItem in data)
         {
-            ExporterHelpers.WriteDataRow(instanceData, dataItem, rowIndex, dropdownDataMappings);
+            ExporterHelpers.WriteDataRow(targetingRule, instanceData, dataItem, rowIndex, targetingRule.Column);
             rowIndex++;
         }
-        
-        return await Task.FromResult(workbook);
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public Task<ExcelReadResult<TModel>> ReadWorkbookAsync(ExcelArguments arguments, XLWorkbook workbook)
+    internal void ReadSheetAsync(TargetingRule<TModel> rule, ExcelReadResult<TModel> result, SharpExcelWriterInstanceData<TModel> instanceData, IXLWorksheet worksheet)
     {
-        var instanceData = CreateReadInstanceData(arguments, workbook);
+        var usedArea = worksheet.RangeUsed();
+        if (usedArea is null)
+        {
+            return;
+        }
         
-        var output = new ExcelReadResult<TModel>();
-
-        var usedArea = instanceData.MainWorksheet.RangeUsed();
-        var headerRowIndex = FindAndMapHeaderRow(instanceData, usedArea);
-        var remainingRows = usedArea.Rows(headerRowIndex + 1, usedArea.RowCount()).ToList();
+        var headerRowIndex = FindAndMapHeaderRow(rule, instanceData, usedArea);
+        var remainingRows = usedArea.Rows(headerRowIndex, usedArea.RowCount()).ToList();
 
         //parse remaining data rows
         foreach (var row in remainingRows)
         {
-            var data = ReadRow(instanceData, row, out var validationResults);
+            var data = ReadRow(worksheet, instanceData, row.WorksheetRow(), out var validationResults);
 
             if (data == null)
             {
-                //skip to next record if we can read record
+                //skip to next record if we can't read record
                 continue;
             }
 
-            output.Records.Add(data);
+            result.Records.Add(data);
             
             //add validation results
             if (validationResults.Any())
             {
                 foreach (var validationResult in validationResults)
                 {
-                    output.ValidationResults.Add(data, new ExcelCellValidationResult()
+                    result.ValidationResults.Add(data, new ExcelCellValidationResult()
                     {
                         Address = validationResult.Key,
                         ValidationResults = validationResult.Value
@@ -100,20 +153,20 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             }
             
         }
-
-        return Task.FromResult(output);
     }
 
     /// <summary>
     /// Reads a row and tries to convert it to the given model
     /// </summary>
+    /// <param name="sheet"></param>
     /// <param name="instance">instance data</param>
     /// <param name="row">row to read</param>
-    /// <param name="validationResults">A dictionary containing validatio nresults of previous rows</param>
+    /// <param name="validationResults">A dictionary containing validation results of previous rows</param>
     /// <returns></returns>
     private static TModel? ReadRow(
+        IXLWorksheet sheet,
         SharpExcelWriterInstanceData<TModel> instance,
-        IXLRangeRow row,
+        IXLRow row,
         out Dictionary<ExcelAddress, List<ValidationResult>> validationResults)
     {
         var data = new TModel();
@@ -129,10 +182,11 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
                 RowNumber = row.RowNumber(),
                 ColumnId = cell.Address.ColumnNumber,
                 ColumnName = cell.Address.ColumnLetter,
-                HeaderName = columnData.Name
+                HeaderName = columnData.Name,
+                SheetName = sheet.Name
             };
 
-            var dataValue = ExporterHelpers.TrySetCellValue(instance.Properties.EnumMappings, columnData, cell,
+            var dataValue = ExporterHelpers.TryGetCellValue(instance.Properties.EnumMappings, columnData, cell,
                 instance.CultureInfo ?? CultureInfo.CurrentCulture);
 
             if (columnData.PropertyInfo.PropertyType == dataValue?.GetType())
@@ -163,6 +217,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <param name="sheet"></param>
     /// <returns></returns>
     private static int FindAndMapHeaderRow(
+        TargetingRule<TModel> rule,
         SharpExcelWriterInstanceData<TModel> instance,
         IXLRange usedArea)
     {
@@ -170,17 +225,25 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
                     x => !string.IsNullOrWhiteSpace(x.NormalizedName))
                 .Select(x => x.NormalizedName?.ToLowerInvariant())!
         );
+        
         //find header row
-        var headerRowIndex = usedArea
+        var headerRow = usedArea
             .Rows(x => x.Cells()
                 .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
-            .FirstOrDefault()
-            ?.RowNumber() ?? -1;
+            .FirstOrDefault()?.WorksheetRow();
+
+        var headerRowId = headerRow!.RowNumber();
 
         var propertiesByColumnName = instance.Properties.PropertyMappings.ToDictionary(x => x.NormalizedName);
 
-        foreach (var cell in instance.MainWorksheet.Row(headerRowIndex).Cells())
+        var startIndex = usedArea.FirstCell().WorksheetColumn().ColumnNumber();
+        
+        if (rule.Column != null && rule.Column > startIndex)
+            startIndex = rule.Column ?? 1;
+
+        for (int i = startIndex; i <= usedArea.ColumnCount(); i++)
         {
+            var cell = headerRow!.Cell(i);
             if (!cell.TryGetValue(out string cellValue))
                 continue;
 
@@ -199,7 +262,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             }
         }
 
-        return headerRowIndex;
+        return headerRowId <= 1 ? 2 : headerRowId - 1;
     }
     
     /// <summary>
@@ -208,7 +271,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <param name="arguments">arguments to use</param>
     /// <param name="workbook">workbook to use</param>
     /// <returns></returns>
-    private SharpExcelWriterInstanceData<TModel> CreateWriteInstanceData(ExcelArguments arguments, XLWorkbook workbook)
+    private SharpExcelWriterInstanceData<TModel> CreateWriteInstanceData(CultureInfo cultureInfo, XLWorkbook workbook)
     {
         var random = new Random();
         var randomNumber = random.Next(0, 1000000);
@@ -220,9 +283,9 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             ErrorStyle = _options.Value.Styling.DefaultErrorStyle,
             Properties = TypeMapper.GetModelMetaData<TModel>(),
             StylingRuleLookup = _options.Value.Styling.ToStylingRuleLookup(),
-            MainWorksheet = workbook.AddWorksheet(arguments.SheetName),
+            Workbook = workbook,
             DropdownSourceWorksheet = workbook.AddWorksheet("Dropdowns_" + randomNumber.ToString("000000")).Hide(),
-            CultureInfo = arguments.CultureInfo
+            CultureInfo = cultureInfo
         };
         
         return run;
@@ -234,7 +297,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <param name="arguments">arguments to use</param>
     /// <param name="workbook">workbook to use</param>
     /// <returns></returns>
-    private SharpExcelWriterInstanceData<TModel> CreateReadInstanceData(ExcelArguments arguments, XLWorkbook workbook)
+    private SharpExcelWriterInstanceData<TModel> CreateReadInstanceData(CultureInfo cultureInfo, XLWorkbook workbook)
     {
        return new SharpExcelWriterInstanceData<TModel>()
         {
@@ -243,8 +306,9 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             ErrorStyle = _options.Value.Styling.DefaultErrorStyle,
             Properties = TypeMapper.GetModelMetaData<TModel>(),
             StylingRuleLookup = _options.Value.Styling.ToStylingRuleLookup(),
-            MainWorksheet = workbook.Worksheet(arguments.SheetName),
-            CultureInfo = arguments.CultureInfo
+            TargetingRules = _options.Value.Targeting.Rules,
+            Workbook = workbook,
+            CultureInfo = cultureInfo
         };
     }
 }

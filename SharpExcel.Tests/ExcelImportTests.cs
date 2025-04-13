@@ -1,8 +1,9 @@
+using System.Globalization;
 using ClosedXML.Excel;
 using Microsoft.Extensions.Options;
 using SharpExcel.Tests.Shared;
-using SharpExcel.Models.Arguments;
 using SharpExcel.Models.Configuration.Constants;
+using SharpExcel.Models.Styling.Constants;
 using Shouldly;
 using Xunit;
 
@@ -23,15 +24,15 @@ public class ExcelImportTests
     [Fact]
     public async Task CreateWorkbookTest()
     {
-        var workbook = await _synchronizer.GenerateWorkbookAsync(new ExcelArguments(){ SheetName = "TestSheet"}, CreateTestData());
-        workbook.Worksheets.FirstOrDefault(x => x.Name == "TestSheet").ShouldNotBeNull();
+        var workbook = await _synchronizer.GenerateWorkbookAsync(CultureInfo.CurrentCulture, CreateTestData());
+        workbook.Worksheets.FirstOrDefault(x => x.Name == ExcelTargetingConstants<TestModel>.DefaultTargetingRule.SheetName).ShouldNotBeNull();
         
         workbook.ShouldNotBeNull();
         //there should be 2 worksheets, a visible one for the data, and a hidden one to pull data from for the enum dropdowns
         workbook.Worksheets.Count.ShouldBe(2);
         
         //main data worksheet
-        workbook.Worksheet(1).Name.ShouldBe("TestSheet");
+        workbook.Worksheet(1).Name.ShouldBe(ExcelTargetingConstants<TestModel>.DefaultTargetingRule.SheetName);
         workbook.Worksheet(1).Visibility.ShouldBe(XLWorksheetVisibility.Visible);
         
         //hidden worksheet for enum dropdowns
@@ -41,12 +42,11 @@ public class ExcelImportTests
     [Fact]
     public async Task ReadWorkbookTest()
     {
-        var args = new ExcelArguments() { SheetName = "TestSheet" };
         //create test workbook
-        var workbook = await _synchronizer.GenerateWorkbookAsync( args, CreateTestData());
+        var workbook = await _synchronizer.GenerateWorkbookAsync(CultureInfo.InvariantCulture, CreateTestData());
 
         //read workbook
-        var output = await _synchronizer.ReadWorkbookAsync(args, workbook);
+        var output = await _synchronizer.ReadWorkbookAsync(CultureInfo.InvariantCulture, workbook);
         
         
         output.Records.Count.ShouldBe(2);

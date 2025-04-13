@@ -3,6 +3,7 @@ using System.Text;
 using ClosedXML.Excel;
 using SharpExcel.Exporters.Helpers;
 using SharpExcel.Extensions;
+using SharpExcel.Models.Data;
 using SharpExcel.Models.Results;
 using SharpExcel.Models.Styling;
 using SharpExcel.Models.Styling.Constants;
@@ -21,12 +22,12 @@ internal static class ExporterHelpers
     /// <param name="workbook"></param>
     /// <param name="parsedWorkbook"></param>
     /// <typeparam name="TModel"></typeparam>
-    public static void ApplyCellValidation<TModel>(string sheetName, XLWorkbook workbook, ExcelReadResult<TModel> parsedWorkbook)
+    public static void ApplyCellValidation<TModel>(XLWorkbook workbook, ExcelReadResult<TModel> parsedWorkbook)
         where TModel : class, new()
     {
         foreach (var result in parsedWorkbook.ValidationResults)
         {
-            var cell = workbook.Worksheet(sheetName).Cell(result.Value.Address.RowNumber, result.Value.Address.ColumnId);
+            var cell = workbook.Worksheet(result.Value.Address.SheetName).Cell(result.Value.Address.RowNumber, result.Value.Address.ColumnId);
             var stringBuilder = new StringBuilder();
             foreach (var item in result.Value.ValidationResults)
             {
@@ -45,7 +46,7 @@ internal static class ExporterHelpers
     /// <param name="cell">cell to wrtie to</param>
     /// <param name="cultureInfo"></param>
     /// <returns></returns>
-    public static object? TrySetCellValue(Dictionary<Type, List<EnumData>> enumMappings, PropertyData columnData, IXLCell cell, CultureInfo cultureInfo)
+    public static object? TryGetCellValue(Dictionary<Type, List<EnumData>> enumMappings, PropertyData columnData, IXLCell cell, CultureInfo cultureInfo)
     {
         //extract underlying nullable type if there is one
         var actualType = Nullable.GetUnderlyingType(columnData.PropertyInfo.PropertyType) ?? columnData.PropertyInfo.PropertyType;
@@ -99,29 +100,31 @@ internal static class ExporterHelpers
         
         return default;
     }
-    
+
     /// <summary>
     /// Writes a row of data cells
     /// </summary>
+    /// <param name="targetingRule">targeting rule for this sheet</param>
     /// <param name="instance">instance data for this run</param>
     /// <param name="dataItem">the current data item being processed</param>
     /// <param name="rowIndex">index of the row to write to</param>
-    /// <param name="dropdownDataMappings">dropdown data mappings for the hidden enum dropdown sheet</param>
+    /// <param name="columnIndex">optional offset column</param>
     /// <typeparam name="TModel">type of the data item being processed</typeparam>
     public static void WriteDataRow<TModel>(
+        TargetingRule<TModel> targetingRule,
         SharpExcelWriterInstanceData<TModel> instance, 
         TModel dataItem,
-        int rowIndex, 
-        Dictionary<Type, string> dropdownDataMappings)
+        int rowIndex,
+        int? columnIndex)
         where TModel : class
     {
         
         for (var i = 0; i < instance.Properties.PropertyMappings.Count; i++)
         {
             var mapping = instance.Properties.PropertyMappings[i];
-            var row = instance.MainWorksheet.Row(rowIndex);
-            var cell = instance.MainWorksheet.Cell(rowIndex, i + 1 /* use +1 because Excel starts at 1 */);
-            WriteDataCell(instance, dataItem, dropdownDataMappings, mapping, cell);
+            var row = instance.Workbook.Worksheet(targetingRule.SheetName).Row(rowIndex);
+            var cell = instance.Workbook.Worksheet(targetingRule.SheetName).Cell(rowIndex, i + (columnIndex ?? 1) /* use +1 because Excel starts at 1 */);
+            WriteDataCell(instance, dataItem, mapping, cell);
             cell.Style.ApplyStyle(GetCellStyle(instance, dataItem, mapping, row));
         }
     }
@@ -138,7 +141,6 @@ internal static class ExporterHelpers
     private static void WriteDataCell<TModel>(
         SharpExcelWriterInstanceData<TModel> instance,
         TModel dataItem, 
-        Dictionary<Type, string> dropdownDataMappings,
         PropertyData mapping, 
         IXLCell cell)
         where TModel : class
@@ -148,7 +150,7 @@ internal static class ExporterHelpers
         //handle enums
         if (mapping.PropertyInfo.PropertyType.IsEnum)
         {
-            EnumExporter.WriteEnumValue(instance, mapping.PropertyInfo.PropertyType, dataValue, cell, dropdownDataMappings);
+            EnumExporter.WriteEnumValue(instance, mapping.PropertyInfo.PropertyType, dataValue, cell);
         }
         //handle format
         else if (mapping.Format != null)
@@ -198,24 +200,27 @@ internal static class ExporterHelpers
     /// <summary>
     /// Writes header row to cell
     /// </summary>
+    /// <param name="targetingRule">Targeting rule for this sheet</param>
     /// <param name="instance">instance data for this run</param>
     /// <param name="rowIndex">the row index to write to</param>
+    /// <param name="columnOffset">optional column offset</param>
     /// <typeparam name="TModel">type of the data item being processed</typeparam>
     public static void WriteHeaderRow<TModel>(
+        TargetingRule<TModel> targetingRule,
         SharpExcelWriterInstanceData<TModel> instance,  
-        int rowIndex)
+        int rowIndex, int? columnOffset)
         where TModel : class
     {
         for (var columnIndex = 0; columnIndex < instance.Properties.PropertyMappings.Count; columnIndex++)
         {
             var mapping = instance.Properties.PropertyMappings[columnIndex];
             
-            var cell = instance.MainWorksheet.Cell(rowIndex, columnIndex + 1 /* use +1 because Excel starts at 1 */);
+            var cell = instance.Workbook.Worksheet(targetingRule.SheetName).Cell(rowIndex, columnIndex + (columnOffset ?? 1) /* use +1 because Excel starts at 1 */);
             cell.Style.ApplyStyle(instance.HeaderStyle);
 
             if (mapping.ColumnWidth > 0)
             {
-                instance.MainWorksheet.Column(columnIndex + 1).Width = mapping.ColumnWidth;
+                instance.Workbook.Worksheet(targetingRule.SheetName).Column(columnIndex + (columnOffset ?? 1)).Width = mapping.ColumnWidth;
             }
 
             cell.SetValue(mapping.Name);

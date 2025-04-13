@@ -12,7 +12,7 @@ internal class EnumExporter
     /// </summary>
     /// <param name="instance">instance of this run</param>
     /// <returns></returns>
-    public static Dictionary<Type, string> AddEnumDropdownMappingsToSheet<TModel>(SharpExcelWriterInstanceData<TModel> instance)
+    public static void AddEnumDropdownMappingsToSheet<TModel>(SharpExcelWriterInstanceData<TModel> instance)
         where TModel : class
     {
         int dropDownWorkbookColumn = 1;
@@ -32,7 +32,7 @@ internal class EnumExporter
             dropDownWorkbookColumn++;
         }
 
-        return dropdownDataMappings;
+        instance.DropdownMappings = dropdownDataMappings;
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ internal class EnumExporter
     /// <param name="cell"></param>
     /// <param name="dropdownDataMappings"></param>
     public static void WriteEnumValue<TModel>(SharpExcelWriterInstanceData<TModel> instance, Type type, object dataValue,
-        IXLCell cell, Dictionary<Type, string> dropdownDataMappings)
+        IXLCell cell)
     where TModel : class
     {
         if (instance.Properties.EnumMappings.TryGetValue(type, out var enumValues))
@@ -61,7 +61,7 @@ internal class EnumExporter
                 }
             }
                         
-            if (dropdownDataMappings.TryGetValue(type, out var range))
+            if (instance.DropdownMappings.TryGetValue(type, out var range))
             {
                 cell.CreateDataValidation().List(instance.DropdownSourceWorksheet.Range(range), true);
             }
