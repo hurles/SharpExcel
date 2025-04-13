@@ -232,11 +232,11 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
                 .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
             .FirstOrDefault()?.WorksheetRow();
 
+        var headerRowId = headerRow!.RowNumber();
+
         var propertiesByColumnName = instance.Properties.PropertyMappings.ToDictionary(x => x.NormalizedName);
 
         var startIndex = usedArea.FirstCell().WorksheetColumn().ColumnNumber();
-        
-        
         
         if (rule.Column != null && rule.Column > startIndex)
             startIndex = rule.Column ?? 1;
@@ -262,7 +262,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             }
         }
 
-        return headerRow!.RowNumber() - 1;
+        return headerRowId <= 1 ? 2 : headerRowId - 1;
     }
     
     /// <summary>
