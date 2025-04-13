@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Extensions.Options;
 using SharpExcel.Abstraction;
 using SharpExcel.Extensions;
@@ -48,7 +49,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
 
             foreach (var rule in ruleGroup)
             {
-                ReadSheetAsync(output, instanceData, worksheet);
+                ReadSheetAsync(rule, output, instanceData, worksheet);
             }
         }
 
@@ -114,7 +115,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     }
 
     /// <inheritdoc />
-    internal void ReadSheetAsync( ExcelReadResult<TModel> result, SharpExcelWriterInstanceData<TModel> instanceData, IXLWorksheet worksheet)
+    internal void ReadSheetAsync(TargetingRule<TModel> rule, ExcelReadResult<TModel> result, SharpExcelWriterInstanceData<TModel> instanceData, IXLWorksheet worksheet)
     {
         var usedArea = worksheet.RangeUsed();
         if (usedArea is null)
@@ -122,17 +123,17 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             return;
         }
         
-        var headerRowIndex = FindAndMapHeaderRow(worksheet, instanceData, usedArea);
+        var headerRowIndex = FindAndMapHeaderRow(rule, instanceData, usedArea);
         var remainingRows = usedArea.Rows(headerRowIndex, usedArea.RowCount()).ToList();
 
         //parse remaining data rows
         foreach (var row in remainingRows)
         {
-            var data = ReadRow(worksheet, instanceData, row, out var validationResults);
+            var data = ReadRow(worksheet, instanceData, row.WorksheetRow(), out var validationResults);
 
             if (data == null)
             {
-                //skip to next record if we can read record
+                //skip to next record if we can't read record
                 continue;
             }
 
@@ -165,7 +166,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     private static TModel? ReadRow(
         IXLWorksheet sheet,
         SharpExcelWriterInstanceData<TModel> instance,
-        IXLRangeRow row,
+        IXLRow row,
         out Dictionary<ExcelAddress, List<ValidationResult>> validationResults)
     {
         var data = new TModel();
@@ -215,7 +216,8 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <param name="usedArea">total used area of the workbook</param>
     /// <param name="sheet"></param>
     /// <returns></returns>
-    private static int FindAndMapHeaderRow(IXLWorksheet worksheet,
+    private static int FindAndMapHeaderRow(
+        TargetingRule<TModel> rule,
         SharpExcelWriterInstanceData<TModel> instance,
         IXLRange usedArea)
     {
@@ -225,16 +227,23 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         );
         
         //find header row
-        var headerRowIndex = usedArea
+        var headerRow = usedArea
             .Rows(x => x.Cells()
                 .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
-            .FirstOrDefault()
-            ?.RowNumber() ?? -1;
+            .FirstOrDefault()?.WorksheetRow();
 
         var propertiesByColumnName = instance.Properties.PropertyMappings.ToDictionary(x => x.NormalizedName);
 
-        foreach (var cell in worksheet.Row(headerRowIndex).Cells())
+        var startIndex = usedArea.FirstCell().WorksheetColumn().ColumnNumber();
+        
+        
+        
+        if (rule.Column != null && rule.Column > startIndex)
+            startIndex = rule.Column ?? 1;
+
+        for (int i = startIndex; i <= usedArea.ColumnCount(); i++)
         {
+            var cell = headerRow!.Cell(i);
             if (!cell.TryGetValue(out string cellValue))
                 continue;
 
@@ -253,7 +262,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             }
         }
 
-        return headerRowIndex == 0 ? 1 : headerRowIndex;
+        return headerRow!.RowNumber() - 1;
     }
     
     /// <summary>

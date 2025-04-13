@@ -72,7 +72,7 @@ public class ExporterOptions<TExportModel>
     /// </summary>
     /// <param name="stylingRuleOptions">constructs the styling rule</param>
     /// <returns></returns>
-    public ExporterOptions<TExportModel> WithTargetingRule(Action<TargetingRule<TExportModel>> targetingRuleOptions)
+    public ExporterOptions<TExportModel> WithTarget(Action<TargetingRule<TExportModel>> targetingRuleOptions)
     {
         var stylingRule = new TargetingRule<TExportModel>();
         targetingRuleOptions(stylingRule);

@@ -48,20 +48,21 @@ builder.Services.AddSharpExcelSynchronizer<TestExportModel>(options =>
             rule.WhenFalse(ExcelCellStyleConstants.DefaultDataStyle.WithTextColor(new(80, 160, 80)));
         });
 
-    options.WithTargetingRule(rule =>
+    options.WithTarget(rule =>
     {
         rule.WithCondition(x => x.Status != TestStatus.Fired); 
         rule.WithSheetName("Employees"); 
-        rule.WithStartColumn(1); 
+        rule.WithStartColumn(3); 
         rule.WithStartRow(3); 
     });
     
-    options.WithTargetingRule(rule =>
+    options.WithTarget(rule =>
     {
         rule.WithCondition(x => x.Status == TestStatus.Fired); 
         rule.WithSheetName("Fired"); 
-        rule.WithStartColumn(1); 
         rule.WithStartRow(3); 
+        rule.WithStartColumn(3); 
+
     });
 });
 
