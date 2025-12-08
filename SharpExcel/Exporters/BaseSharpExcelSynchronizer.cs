@@ -74,13 +74,19 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
 
         Dictionary<TargetingRule<TModel>, IEnumerable<TModel>> dataGroupedByTargetingRule = new();
 
+        if (!workbook.Worksheets.TryGetWorksheet(ExcelTargetingConstants<TModel>.DefaultTargetingRule.SheetName!, out _))
+        {
+            //create default sheet if it does not exist
+            workbook.Worksheets.Add(ExcelTargetingConstants<TModel>.DefaultTargetingRule.SheetName!);
+        }
+
         foreach (var targetingRule in _options.Value.Targeting.Rules)
         {
             dataGroupedByTargetingRule.Add(targetingRule, data.Where(x => targetingRule.RulePredicate != null && targetingRule.RulePredicate(x)).ToList());
-            //use first sheet if sheet does not exist
-            if (workbook.Worksheets.Count > 0 && !workbook.Worksheets.TryGetWorksheet(targetingRule?.SheetName ?? workbook.Worksheets.First().Name, out _))
+            
+            if (targetingRule?.SheetName is not null && !workbook.Worksheets.TryGetWorksheet(targetingRule.SheetName, out _))
             {
-                workbook.Worksheets.Add(targetingRule?.SheetName ?? workbook.Worksheets.First().Name);
+                workbook.Worksheets.Add((targetingRule?.SheetName ?? ExcelTargetingConstants<TModel>.DefaultTargetingRule.SheetName)!);
             }
         }
         
