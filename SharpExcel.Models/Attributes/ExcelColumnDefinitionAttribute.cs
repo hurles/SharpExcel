@@ -9,9 +9,9 @@ namespace SharpExcel.Models.Attributes;
 public class ExcelColumnDefinitionAttribute(string columnName, int width = -1, string? format = null)
     : Attribute
 {
-    public string DisplayName { get; set; } = columnName;
+    public string DisplayName { get; } = columnName;
 
-    public int ColumnWidth { get; set; } = width;
+    public int ColumnWidth { get; } = width;
 
-    public string? Format { get; set; } = format;
+    public string? Format { get; } = format;
 }
