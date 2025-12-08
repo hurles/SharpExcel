@@ -3,6 +3,7 @@ using System.Globalization;
 using ClosedXML.Excel;
 using Microsoft.Extensions.Options;
 using SharpExcel.Abstraction;
+using SharpExcel.Exporters.Helpers;
 using SharpExcel.Extensions;
 using SharpExcel.Models.Configuration;
 using SharpExcel.Models.Data;
@@ -136,7 +137,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         }
         
         var headerRowIndex = FindAndMapHeaderRow(rule, instanceData, usedArea);
-        var remainingRows = usedArea.Rows(headerRowIndex, usedArea.RowCount()).ToList();
+        var remainingRows = usedArea.Rows(headerRowIndex + 1, usedArea.RowCount()).ToList();
 
         //parse remaining data rows
         foreach (var row in remainingRows)
@@ -228,34 +229,16 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         SharpExcelWriterInstanceData<TModel> instance,
         IXLRange usedArea)
     {
-        var headerNames = new HashSet<string>(instance.Properties.PropertyMappings.Where(
-                    x => !string.IsNullOrWhiteSpace(x.NormalizedName))
-                .Select(x => x.NormalizedName?.ToLowerInvariant())!
-        );
+        return MapHeaderRow(instance, usedArea, rule.Column ?? usedArea.FirstCell().WorksheetColumn().ColumnNumber(), rule.Row);
+    }
 
-        IXLRow? headerRow;
-
-        if (rule.Row is not null && rule.Row > 0)
-        {
-            headerRow = usedArea.Row(rule.Row.Value).WorksheetRow();
-        }
-        else
-        {
-            headerRow = usedArea
-                .Rows(x => x.Cells()
-                    .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
-                .FirstOrDefault()?.WorksheetRow();
-        }
-        
-        var headerRowId = headerRow!.RowNumber();
-
+    private static int MapHeaderRow(SharpExcelWriterInstanceData<TModel> instance, IXLRange usedArea, int startIndex, int? headerRowIndex = null)
+    {
+        var headerNames = GetHeaderNames(instance);
         var propertiesByColumnName = instance.Properties.PropertyMappings.ToDictionary(x => x.NormalizedName);
 
-        var startIndex = usedArea.FirstCell().WorksheetColumn().ColumnNumber();
+        var headerRow = usedArea.Row(headerRowIndex is > 0 ? headerRowIndex.Value : 1).WorksheetRow();
         
-        if (rule.Column != null && rule.Column > startIndex)
-            startIndex = rule.Column ?? 1;
-
         for (int i = startIndex; i <= usedArea.ColumnCount(); i++)
         {
             var cell = headerRow.Cell(i);
@@ -277,9 +260,29 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
             }
         }
 
-        return headerRowId <= 1 ? 2 : headerRowId - 1;
+        return headerRow.RowNumber();
     }
-    
+
+    private static IXLRow? FindHeaderRow(SharpExcelWriterInstanceData<TModel> instance, IXLRange usedArea)
+    {
+        IXLRow? headerRow;
+        var headerNames = GetHeaderNames(instance);
+            
+        headerRow = usedArea
+            .Rows(x => x.Cells()
+                .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
+            .FirstOrDefault()?.WorksheetRow();
+        return headerRow;
+    }
+
+    private static HashSet<string> GetHeaderNames(SharpExcelWriterInstanceData<TModel> instance)
+    {
+        return new HashSet<string>(instance.Properties.PropertyMappings.Where(
+                    x => !string.IsNullOrWhiteSpace(x.NormalizedName))
+                .Select(x => x.NormalizedName?.ToLowerInvariant())!
+        );
+    }
+
     private SharpExcelWriterInstanceData<TModel> CreateWriteInstanceData(CultureInfo cultureInfo, XLWorkbook workbook)
     {
         var random = new Random();
