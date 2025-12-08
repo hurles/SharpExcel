@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Extensions.Options;
 using SharpExcel.Abstraction;
 using SharpExcel.Extensions;
@@ -38,18 +37,26 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         var output = new ExcelReadResult<TModel>();
         var instanceData = CreateReadInstanceData(cultureInfo, workbook);
 
-        var rules = _options.Value.Targeting.Rules.GroupBy(rule => rule.SheetName);
+        var rules = _options.Value.Targeting.Rules.Where(rule => rule.SheetName is not null).GroupBy(rule => rule.SheetName);
 
         foreach (var ruleGroup in rules)
         {
-            if (!instanceData.Workbook.Worksheets.TryGetWorksheet(ruleGroup.Key, out var worksheet))
+            if (!instanceData.Workbook.Worksheets.TryGetWorksheet(ruleGroup.Key!, out var worksheet))
             {
                 continue;
             }
 
             foreach (var rule in ruleGroup)
             {
-                ReadSheetAsync(rule, output, instanceData, worksheet);
+                ReadSheet(rule, output, instanceData, worksheet);
+            }
+        }
+
+        if (workbook.Worksheets.Count > 0)
+        {
+            foreach (var rule in _options.Value.Targeting.Rules.Where(rule => rule.SheetName is null))
+            {
+                ReadSheet(rule, output, instanceData, workbook.Worksheets.First());
             }
         }
 
@@ -71,7 +78,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         {
             dataGroupedByTargetingRule.Add(targetingRule, data.Where(x => targetingRule.RulePredicate != null && targetingRule.RulePredicate(x)).ToList());
             //use first sheet if sheet does not exist
-            if (workbook.Worksheets.Count > 0 && !workbook.Worksheets.TryGetWorksheet(targetingRule?.SheetName ?? workbook.Worksheets.First().Name ?? "Sheet1", out var _))
+            if (workbook.Worksheets.Count > 0 && !workbook.Worksheets.TryGetWorksheet(targetingRule?.SheetName ?? workbook.Worksheets.First().Name, out _))
             {
                 workbook.Worksheets.Add(targetingRule?.SheetName ?? workbook.Worksheets.First().Name);
             }
@@ -92,9 +99,9 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
 
     internal virtual Task GenerateSheetAsync(TargetingRule<TModel> targetingRule, SharpExcelWriterInstanceData<TModel> instanceData, IEnumerable<TModel> data)
     {
-        if (!instanceData.Workbook.Worksheets.TryGetWorksheet(targetingRule.SheetName, out var _))
+        if (!instanceData.Workbook.Worksheets.TryGetWorksheet((targetingRule.SheetName ?? ExcelTargetingConstants<TModel>.DefaultTargetingRule.SheetName)!, out _))
         {
-            instanceData.Workbook.Worksheets.Add(targetingRule.SheetName);
+            instanceData.Workbook.Worksheets.Add(targetingRule.SheetName ?? ExcelTargetingConstants<TModel>.DefaultTargetingRule.SheetName!);
         }
 
         //start at Row 1 if not defined because Excel starts at 1
@@ -114,7 +121,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         return Task.CompletedTask;
     }
 
-    internal void ReadSheetAsync(TargetingRule<TModel> rule, ExcelReadResult<TModel> result, SharpExcelWriterInstanceData<TModel> instanceData, IXLWorksheet worksheet)
+    internal void ReadSheet(TargetingRule<TModel> rule, ExcelReadResult<TModel> result, SharpExcelWriterInstanceData<TModel> instanceData, IXLWorksheet worksheet)
     {
         var usedArea = worksheet.RangeUsed();
         if (usedArea is null)
@@ -130,14 +137,6 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         {
             var data = ReadRow(worksheet, instanceData, row.WorksheetRow(), out var validationResults);
 
-            if (data == null)
-            {
-                //skip to next record if we can't read record
-                continue;
-            }
-
-            result.Records.Add(data);
-            
             //add validation results
             if (validationResults.Any())
             {
@@ -149,8 +148,11 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
                         ValidationResults = validationResult.Value
                     });
                 }
+
+                continue;
             }
-            
+
+            result.Records.Add(data);
         }
     }
 
@@ -242,7 +244,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
 
         for (int i = startIndex; i <= usedArea.ColumnCount(); i++)
         {
-            var cell = headerRow!.Cell(i);
+            var cell = headerRow.Cell(i);
             if (!cell.TryGetValue(out string cellValue))
                 continue;
 
@@ -264,12 +266,6 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         return headerRowId <= 1 ? 2 : headerRowId - 1;
     }
     
-    /// <summary>
-    /// Creates lookup data for the current export run
-    /// </summary>
-    /// <param name="arguments">arguments to use</param>
-    /// <param name="workbook">workbook to use</param>
-    /// <returns></returns>
     private SharpExcelWriterInstanceData<TModel> CreateWriteInstanceData(CultureInfo cultureInfo, XLWorkbook workbook)
     {
         var random = new Random();
@@ -290,12 +286,6 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         return run;
     }
     
-    /// <summary>
-    /// Creates lookup data for the current import run
-    /// </summary>
-    /// <param name="arguments">arguments to use</param>
-    /// <param name="workbook">workbook to use</param>
-    /// <returns></returns>
     private SharpExcelWriterInstanceData<TModel> CreateReadInstanceData(CultureInfo cultureInfo, XLWorkbook workbook)
     {
        return new SharpExcelWriterInstanceData<TModel>()

@@ -12,7 +12,7 @@ public record TargetingRule<TRecord> : ITargetingRule
     /// REQUIRED: name of the sheet in the excel file
     /// </summary>
     [MinLength(1)]
-    public string SheetName { get; set; } = null!;
+    public string? SheetName { get; set; }
 
     /// <summary>
     /// Optional Row to start reading/writing from.

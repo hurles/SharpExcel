@@ -70,7 +70,7 @@ public class ExporterOptions<TExportModel>
     /// <summary>
     /// Fluent method to add a styling rule for this exporter
     /// </summary>
-    /// <param name="stylingRuleOptions">constructs the styling rule</param>
+    /// <param name="targetingRuleOptions">constructs targeting rule</param>
     /// <returns></returns>
     public ExporterOptions<TExportModel> WithTarget(Action<TargetingRule<TExportModel>> targetingRuleOptions)
     {
