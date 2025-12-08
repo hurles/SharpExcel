@@ -70,9 +70,10 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         foreach (var targetingRule in _options.Value.Targeting.Rules)
         {
             dataGroupedByTargetingRule.Add(targetingRule, data.Where(x => targetingRule.RulePredicate != null && targetingRule.RulePredicate(x)).ToList());
-            if (!workbook.Worksheets.TryGetWorksheet(targetingRule.SheetName, out var _))
+            //use first sheet if sheet does not exist
+            if (workbook.Worksheets.Count > 0 && !workbook.Worksheets.TryGetWorksheet(targetingRule?.SheetName ?? workbook.Worksheets.First().Name ?? "Sheet1", out var _))
             {
-                workbook.Worksheets.Add(targetingRule.SheetName);
+                workbook.Worksheets.Add(targetingRule?.SheetName ?? workbook.Worksheets.First().Name);
             }
         }
         
@@ -89,7 +90,6 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     }
 
 
-    /// <inheritdoc />
     internal virtual Task GenerateSheetAsync(TargetingRule<TModel> targetingRule, SharpExcelWriterInstanceData<TModel> instanceData, IEnumerable<TModel> data)
     {
         if (!instanceData.Workbook.Worksheets.TryGetWorksheet(targetingRule.SheetName, out var _))
@@ -114,7 +114,6 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
         return Task.CompletedTask;
     }
 
-    /// <inheritdoc />
     internal void ReadSheetAsync(TargetingRule<TModel> rule, ExcelReadResult<TModel> result, SharpExcelWriterInstanceData<TModel> instanceData, IXLWorksheet worksheet)
     {
         var usedArea = worksheet.RangeUsed();
@@ -163,7 +162,7 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <param name="row">row to read</param>
     /// <param name="validationResults">A dictionary containing validation results of previous rows</param>
     /// <returns></returns>
-    private static TModel? ReadRow(
+    private static TModel ReadRow(
         IXLWorksheet sheet,
         SharpExcelWriterInstanceData<TModel> instance,
         IXLRow row,
@@ -212,9 +211,9 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
     /// <summary>
     /// Finds header row and maps the column order so we can fill them later
     /// </summary>
+    /// <param name="rule"></param>
     /// <param name="instance">instance data</param>
     /// <param name="usedArea">total used area of the workbook</param>
-    /// <param name="sheet"></param>
     /// <returns></returns>
     private static int FindAndMapHeaderRow(
         TargetingRule<TModel> rule,
