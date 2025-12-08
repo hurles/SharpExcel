@@ -232,13 +232,21 @@ public class BaseSharpExcelSynchronizer<TModel> : ISharpExcelSynchronizer<TModel
                     x => !string.IsNullOrWhiteSpace(x.NormalizedName))
                 .Select(x => x.NormalizedName?.ToLowerInvariant())!
         );
-        
-        //find header row
-        var headerRow = usedArea
-            .Rows(x => x.Cells()
-                .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
-            .FirstOrDefault()?.WorksheetRow();
 
+        IXLRow? headerRow;
+
+        if (rule.Row is not null && rule.Row > 0)
+        {
+            headerRow = usedArea.Row(rule.Row.Value).WorksheetRow();
+        }
+        else
+        {
+            headerRow = usedArea
+                .Rows(x => x.Cells()
+                    .Any(c => headerNames.Contains(c.Value.ToString().ToLowerInvariant())))
+                .FirstOrDefault()?.WorksheetRow();
+        }
+        
         var headerRowId = headerRow!.RowNumber();
 
         var propertiesByColumnName = instance.Properties.PropertyMappings.ToDictionary(x => x.NormalizedName);
